@@ -7,6 +7,8 @@ import {
   VerificationStatus,
 } from 'twilio/lib/rest/verify/v2/service/verification';
 
+import JsonWebTokenService from './json-web-token.service';
+
 const MAX_SEND_ATTEMPT_REACHED_CODE = 60203;
 const VERIFICATION_STATUSES = {
   PENDING: 'pending',
@@ -14,21 +16,27 @@ const VERIFICATION_STATUSES = {
   CANCELED: 'canceled',
   DENIED: 'denied',
 };
-const TEST_NUMBER = '+11111111111';
-const TEST_VERIFICATION_SID = 'TEST_VERIFICATION_SID';
 
 @Injectable()
-export class TwilioService {
+export default class TwilioService {
   private client: Twilio.Twilio;
   private verifyService: ServiceContext;
+  private TEST_NUMBER: string;
+  private TEST_VERIFICATION_CODE: string;
 
-  constructor(configService: ConfigService) {
+  constructor(
+    configService: ConfigService,
+    private jsonWebTokenService: JsonWebTokenService,
+  ) {
     const twilioAccountSid = configService.get<string>('TWILIO_ACCOUNT_SID');
     const authToken = configService.get<string>('TWILIO_AUTH_TOKEN');
     const verifyServiceSid = configService.get<string>(
       'TWILIO_VERIFY_SERVICE_SID',
     );
-
+    this.TEST_NUMBER = configService.get<string>('TEST_NUMBER');
+    this.TEST_VERIFICATION_CODE = configService.get<string>(
+      'TEST_VERIFICATION_CODE',
+    );
     this.client = Twilio(twilioAccountSid, authToken);
     this.verifyService = this.client.verify.services(verifyServiceSid);
   }
@@ -44,7 +52,6 @@ export class TwilioService {
       });
     } catch (error) {
       const { code } = error;
-
       if (code === MAX_SEND_ATTEMPT_REACHED_CODE) {
         await this.verifyService.verifications(phoneNumber).update({
           status: VERIFICATION_STATUSES.CANCELED as VerificationStatus,
@@ -58,15 +65,18 @@ export class TwilioService {
         }
       }
       throw new HttpException(
-        { phoneNumber: 'Phone number is not correct' },
+        {
+          phoneNumber:
+            'Please wait for a short period of time and make the request again',
+        },
         HttpStatus.BAD_REQUEST,
       );
     }
   }
 
   async startVerification(phoneNumber: string, channel = 'sms') {
-    if (phoneNumber === TEST_NUMBER) {
-      return Promise.resolve({ sid: TEST_VERIFICATION_SID });
+    if (phoneNumber === this.TEST_NUMBER) {
+      return { code: this.TEST_VERIFICATION_CODE };
     }
     const verification = await this.createVerification(phoneNumber, channel);
     if (!verification.sid) {
@@ -75,18 +85,30 @@ export class TwilioService {
         HttpStatus.BAD_REQUEST,
       );
     }
+    return {};
   }
 
   async checkVerification(phone: string, code: string) {
+    if (code === this.TEST_VERIFICATION_CODE && phone === this.TEST_NUMBER) {
+      const verificationToken = this.jsonWebTokenService.sign({
+        phoneNumber: phone,
+      });
+      return { verificationToken };
+    }
+
     const status = await this.createVerificationCheck(phone, code);
     if (status !== VERIFICATION_STATUSES.APPROVED) {
       throw new HttpException(
         {
-          twilioCode: 'The verification phone code is not correct',
+          code: 'The verification phone code is not correct',
         },
         HttpStatus.BAD_REQUEST,
       );
     }
+    const verificationToken = this.jsonWebTokenService.sign({
+      phoneNumber: phone,
+    });
+    return { verificationToken };
   }
 
   private async createVerificationCheck(phone: string, code: string) {
@@ -99,7 +121,7 @@ export class TwilioService {
       return status;
     } catch (e) {
       throw new HttpException(
-        { twilioCode: 'The error in verification check' },
+        { code: 'The error in verification check' },
         HttpStatus.BAD_REQUEST,
       );
     }

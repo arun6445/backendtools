@@ -10,12 +10,18 @@ export class AccountDto {
 
   public auth: OAuthProvider;
 
-  static fromAccountDocument(account: Account): AccountDto {
+  public accessToken: string;
+
+  static fromAccountDocument(
+    account: Account,
+    accessToken: string,
+  ): AccountDto {
     const accountDto = new AccountDto();
     accountDto.email = account.email;
     accountDto.username = account.username;
     accountDto.phoneNumber = account.phoneNumber;
     accountDto.auth = account.auth;
+    accountDto.accessToken = accessToken;
 
     return accountDto;
   }

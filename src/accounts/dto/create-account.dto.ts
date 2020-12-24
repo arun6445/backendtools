@@ -7,14 +7,32 @@ export class PhoneNumberDto {
   readonly phoneNumber: string;
 }
 
-export class PhoneNumberWithCodeDto extends PhoneNumberDto {
+export class EmailDto {
+  @IsEmail({}, { message: 'Invalid email' })
+  readonly email: string;
+}
+export class PhoneNumberWithCodeDto {
   @Length(4, 6, {
     message: 'Code should not be minimum 4 symbols and maximum 6',
   })
-  readonly twilioCode: string;
+  readonly code: string;
+
+  @IsNotEmpty({ message: 'Phone should not be empty' })
+  readonly phoneNumber: string;
 }
 
-export class CreateAccountDto extends PhoneNumberDto {
+export class ResetPasswordDto {
+  @Validate(PasswordValidation)
+  readonly password: string;
+
+  @IsNotEmpty({ message: 'Phone should not be empty' })
+  readonly verificationToken: string;
+}
+
+export class CreateAccountDto {
+  @IsNotEmpty({ message: 'Phone should not be empty' })
+  readonly verificationToken: string;
+
   @IsEmail({}, { message: 'Invalid email' })
   readonly email: string;
 
