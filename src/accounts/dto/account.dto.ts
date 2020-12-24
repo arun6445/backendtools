@@ -12,6 +12,8 @@ export class AccountDto {
 
   public accessToken: string;
 
+  public password: string;
+
   static fromAccountDocument(
     account: Account,
     accessToken: string,

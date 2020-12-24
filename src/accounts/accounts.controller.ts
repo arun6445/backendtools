@@ -19,6 +19,8 @@ import {
   ResetPasswordDto,
   EmailDto,
 } from './dto/create-account.dto';
+import { SignInAccountDto } from './dto/signin-account.dto';
+import { AccessTokenDto } from './dto/access-token.dto';
 
 @Controller('accounts')
 export class AccountsController {
@@ -35,7 +37,13 @@ export class AccountsController {
 
   @Post('check-email')
   async checkEmail(@Body() { email }: EmailDto) {
-    await this.accountsService.checkEmailExistence(email);
+    const isEmailExist = await this.accountsService.checkEmailExistence(email);
+    if (isEmailExist) {
+      throw new HttpException(
+        { email: 'This email is already registered' },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
     return {};
   }
 
@@ -80,8 +88,17 @@ export class AccountsController {
     return this.twilioService.startVerification(phoneNumber);
   }
 
+  @Post('signin')
+  async login(
+    @Body() signInAccountDto: SignInAccountDto,
+  ): Promise<AccessTokenDto> {
+    return this.accountsService.signIn(signInAccountDto);
+  }
+
   @Patch('reset-password')
-  async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+  async resetPassword(
+    @Body() resetPasswordDto: ResetPasswordDto,
+  ): Promise<AccessTokenDto> {
     return this.accountsService.resetPassword(resetPasswordDto);
   }
 }
