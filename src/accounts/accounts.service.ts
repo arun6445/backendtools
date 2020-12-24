@@ -2,7 +2,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 
-import { getHash } from 'helpers/security.util';
+import { getHash, compareTextWithHash } from 'helpers/security.util';
 import JsonWebTokenService from 'services/json-web-token.service';
 
 import {
@@ -12,6 +12,7 @@ import {
 } from './dto/create-account.dto';
 import { AccountDto } from './dto/account.dto';
 import { Account, AccountDocument } from './schemas/account.schema';
+import { SignInAccountDto } from './dto/signin-account.dto';
 
 @Injectable()
 export class AccountsService {
@@ -21,8 +22,15 @@ export class AccountsService {
   ) {}
 
   async create(createAccountDto: CreateAccountDto): Promise<AccountDto> {
-    await this.checkEmailExistence(createAccountDto.email);
-
+    const isEmailExists = await this.checkEmailExistence(
+      createAccountDto.email,
+    );
+    if (isEmailExists) {
+      throw new HttpException(
+        { email: 'This email is already registered' },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
     const phoneNumber = await this.getPhoneFromToken(
       createAccountDto.verificationToken,
     );
@@ -50,17 +58,42 @@ export class AccountsService {
     });
 
     await newUser.save();
-    const accessToken = await this.jsonWebTokenService.sign(newUser._id);
+    const accessToken = await this.jsonWebTokenService.sign({
+      userId: newUser._id,
+    });
     return AccountDto.fromAccountDocument(newUser, accessToken);
   }
 
-  public async checkEmailExistence(email: string) {
-    const isEmailExists = await this.accountModel.exists({
+  public async checkEmailExistence(email: string): Promise<boolean> {
+    return this.accountModel.exists({
       email,
     });
-    if (isEmailExists) {
+  }
+
+  public async signIn({ email, password }: SignInAccountDto) {
+    const isEmailExists = await this.checkEmailExistence(email);
+
+    if (!isEmailExists) {
       throw new HttpException(
-        { email: 'This email is already registered' },
+        { credentials: 'Email or password is not correct' },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    const user = await this.accountModel.findOne({ email });
+
+    const isCorrectPassword = await compareTextWithHash(
+      password,
+      user.password,
+    );
+
+    if (isCorrectPassword) {
+      const accessToken = await this.jsonWebTokenService.sign({
+        userId: user._id,
+      });
+      return { accessToken };
+    } else {
+      throw new HttpException(
+        { credentials: 'Email or password is not correct' },
         HttpStatus.BAD_REQUEST,
       );
     }
@@ -86,7 +119,9 @@ export class AccountsService {
       { phoneNumber },
       { password: hashPassword },
     );
-    const accessToken = await this.jsonWebTokenService.sign(user._id);
+    const accessToken = await this.jsonWebTokenService.sign({
+      userId: user._id,
+    });
     return { accessToken };
   }
 
