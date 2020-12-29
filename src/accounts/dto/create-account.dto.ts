@@ -30,7 +30,7 @@ export class ResetPasswordDto {
 }
 
 export class CreateAccountDto {
-  @IsNotEmpty({ message: 'Phone should not be empty' })
+  @IsNotEmpty({ message: 'Token should not be empty' })
   readonly verificationToken: string;
 
   @IsEmail({}, { message: 'Invalid email' })

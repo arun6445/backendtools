@@ -20,7 +20,7 @@ export class Account {
   password: string;
 
   @Prop()
-  auth: OAuthProvider;
+  oauth: OAuthProvider;
 }
 
 export const AccountSchema = SchemaFactory.createForClass(Account);

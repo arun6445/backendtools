@@ -21,6 +21,10 @@ import {
 } from './dto/create-account.dto';
 import { SignInAccountDto } from './dto/signin-account.dto';
 import { AccessTokenDto } from './dto/access-token.dto';
+import {
+  FacebookSignUpAccountDto,
+  FacebookSignInAccountDto,
+} from './dto/facebook-account';
 
 @Controller('accounts')
 export class AccountsController {
@@ -49,9 +53,6 @@ export class AccountsController {
 
   @Post('send/code')
   async sendToTwilio(@Body() { phoneNumber }: PhoneNumberDto) {
-    if (phoneNumber === this.configService.get<string>('TEST_NUMBER')) {
-      return { code: this.configService.get<string>('TEST_VERIFICATION_CODE') };
-    }
     const isUserExists = await this.accountsService.checkPhoneNumberExistence(
       phoneNumber,
     );
@@ -71,11 +72,26 @@ export class AccountsController {
     return this.twilioService.checkVerification(phoneNumber, code);
   }
 
+  @Post('signup/facebook')
+  async signUpFacebook(
+    @Body()
+    { facebookAccessToken, verificationToken }: FacebookSignUpAccountDto,
+  ) {
+    return this.accountsService.signUpFacebook(
+      facebookAccessToken,
+      verificationToken,
+    );
+  }
+
+  @Post('signin/facebook')
+  async signInFacebook(
+    @Body() { facebookAccessToken }: FacebookSignInAccountDto,
+  ) {
+    return this.accountsService.signInFacebook(facebookAccessToken);
+  }
+
   @Post('forgot-password')
   async forgotPassword(@Body() { phoneNumber }: PhoneNumberDto) {
-    if (phoneNumber === this.configService.get<string>('TEST_NUMBER')) {
-      return { code: this.configService.get<string>('TEST_VERIFICATION_CODE') };
-    }
     const isUserExists = await this.accountsService.checkPhoneNumberExistence(
       phoneNumber,
     );

@@ -74,8 +74,18 @@ export default class TwilioService {
     }
   }
 
+  private checkTestData(phoneNumber: string, testCode?: string): boolean {
+    if (testCode) {
+      return (
+        testCode === this.TEST_VERIFICATION_CODE &&
+        phoneNumber === this.TEST_NUMBER
+      );
+    }
+    return phoneNumber === this.TEST_NUMBER;
+  }
+
   async startVerification(phoneNumber: string, channel = 'sms') {
-    if (phoneNumber === this.TEST_NUMBER) {
+    if (this.checkTestData(phoneNumber)) {
       return { code: this.TEST_VERIFICATION_CODE };
     }
     const verification = await this.createVerification(phoneNumber, channel);
@@ -89,7 +99,7 @@ export default class TwilioService {
   }
 
   async checkVerification(phone: string, code: string) {
-    if (code === this.TEST_VERIFICATION_CODE && phone === this.TEST_NUMBER) {
+    if (this.checkTestData(phone, code)) {
       const verificationToken = this.jsonWebTokenService.sign({
         phoneNumber: phone,
       });

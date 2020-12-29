@@ -8,11 +8,13 @@ export class AccountDto {
 
   public phoneNumber: string;
 
-  public auth: OAuthProvider;
+  public oauth: OAuthProvider;
 
   public accessToken: string;
 
   public password: string;
+
+  public _id: string;
 
   static fromAccountDocument(
     account: Account,
@@ -22,7 +24,7 @@ export class AccountDto {
     accountDto.email = account.email;
     accountDto.username = account.username;
     accountDto.phoneNumber = account.phoneNumber;
-    accountDto.auth = account.auth;
+    accountDto.oauth = account.oauth;
     accountDto.accessToken = accessToken;
 
     return accountDto;
