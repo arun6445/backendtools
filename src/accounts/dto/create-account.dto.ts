@@ -7,10 +7,6 @@ export class PhoneNumberDto {
   readonly phoneNumber: string;
 }
 
-export class EmailDto {
-  @IsEmail({}, { message: 'Invalid email' })
-  readonly email: string;
-}
 export class PhoneNumberWithCodeDto {
   @Length(4, 6, {
     message: 'Code should be minimum 4 symbols and maximum 6',
@@ -41,4 +37,10 @@ export class CreateAccountDto {
 
   @Validate(PasswordValidation)
   readonly password: string;
+}
+
+export interface CreateAccountError {
+  email?: string;
+  username?: string;
+  phoneNumber?: string;
 }

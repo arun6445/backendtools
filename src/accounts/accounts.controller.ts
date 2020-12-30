@@ -16,7 +16,6 @@ import {
   PhoneNumberWithCodeDto,
   PhoneNumberDto,
   ResetPasswordDto,
-  EmailDto,
 } from './dto/create-account.dto';
 import { SignInAccountDto } from './dto/signin-account.dto';
 import {
@@ -37,18 +36,6 @@ export class AccountsController {
   @Post('signup')
   create(@Body() createAccountDto: CreateAccountDto): Promise<AccountDto> {
     return this.accountsService.create(createAccountDto);
-  }
-
-  @Post('check-email')
-  async checkEmail(@Body() { email }: EmailDto): Promise<Record<any, never>> {
-    const isEmailExist = await this.accountsService.checkEmailExistence(email);
-    if (isEmailExist) {
-      throw new HttpException(
-        { email: 'This email is already registered' },
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-    return {};
   }
 
   @Post('send/code')

@@ -14,6 +14,7 @@ import {
   CreateAccountDto,
   PhoneNumberDto,
   ResetPasswordDto,
+  CreateAccountError,
 } from './dto/create-account.dto';
 import { SignInAccountDto } from './dto/signin-account.dto';
 import { FacebookAccount } from './dto/facebook-account';
@@ -99,6 +100,12 @@ export class AccountsService {
     });
   }
 
+  public async checkUsernameExistence(username: string): Promise<boolean> {
+    return this.accountModel.exists({
+      username,
+    });
+  }
+
   private async ensureAccountCreatedOrCreate(
     userInfo,
     oauthProvider,
@@ -181,6 +188,7 @@ export class AccountsService {
         HttpStatus.BAD_REQUEST,
       );
     }
+
     const user = await this.accountModel.findOne({ email });
 
     const isCorrectPassword = await compareTextWithHash(
@@ -227,68 +235,89 @@ export class AccountsService {
     return AccountDto.fromAccountDocument(user, accessToken);
   }
 
-  async create(createAccountDto: CreateAccountDto): Promise<AccountDto> {
-    const isEmailExists = await this.checkEmailExistence(
-      createAccountDto.email,
-    );
-    if (isEmailExists) {
-      throw new HttpException(
-        { email: 'This email is already registered' },
-        HttpStatus.BAD_REQUEST,
-      );
+  private async validateCreateAccount(
+    email: string,
+    username: string,
+    phoneNumber: string,
+  ): Promise<void> {
+    const errors: CreateAccountError = {};
+
+    const [isEmailExist, isUsernameExist, isPhoneExists] = await Promise.all([
+      this.checkEmailExistence(email),
+      this.checkUsernameExistence(username),
+      this.checkPhoneNumberExistence(phoneNumber),
+    ]);
+
+    if (isEmailExist) {
+      errors.email = 'This email is already registered';
     }
-    const phoneNumber = await this.getPhoneFromToken(
+
+    if (isUsernameExist) {
+      errors.username = 'This username is already registered';
+    }
+
+    if (isPhoneExists) {
+      errors.phoneNumber = 'This phone is already registered';
+    }
+
+    if (isEmailExist || isUsernameExist || isPhoneExists) {
+      throw new HttpException(errors, HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  async create(createAccountDto: CreateAccountDto): Promise<AccountDto> {
+    const phoneNumber = this.getPhoneFromToken(
       createAccountDto.verificationToken,
     );
 
-    const isPhoneNumberExists = await this.checkPhoneNumberExistence(
+    await this.validateCreateAccount(
+      createAccountDto.email,
+      createAccountDto.username,
       phoneNumber,
     );
 
-    if (isPhoneNumberExists) {
-      throw new HttpException(
-        { phoneNumber: 'This phone is already registered' },
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-
     const rehiveUser = await this.rehiveService.createUser();
-    if (rehiveUser.status === 'success') {
-      const password = await getHash(createAccountDto.password);
-      const newUser = new this.accountModel({
-        _id: rehiveUser.data.id,
-        email: createAccountDto.email,
-        username: createAccountDto.username,
-        phoneNumber,
-        password,
-        oauth: {
-          facebook: '',
-          google: '',
-        },
-      });
 
-      await newUser.save();
-      const accessToken = await this.jsonWebTokenService.sign({
-        userId: newUser._id,
-      });
-      return AccountDto.fromAccountDocument(newUser, accessToken);
-    } else {
+    if (rehiveUser.status !== 'success') {
       throw new HttpException(
         { credentials: 'User has not been registered' },
         HttpStatus.BAD_REQUEST,
       );
     }
+
+    const password = await getHash(createAccountDto.password);
+    const newUser = new this.accountModel({
+      _id: rehiveUser.data.id,
+      email: createAccountDto.email,
+      username: createAccountDto.username,
+      phoneNumber,
+      password,
+      oauth: {
+        facebook: '',
+        google: '',
+      },
+    });
+
+    await newUser.save();
+    const accessToken = this.jsonWebTokenService.sign({
+      userId: newUser._id,
+    });
+
+    return AccountDto.fromAccountDocument(newUser, accessToken);
   }
 
-  private async getPhoneFromToken(token: string): Promise<string> {
-    const { isValid, payload } = this.jsonWebTokenService.verify(token);
+  private getPhoneFromToken(token: string): string {
+    const {
+      isValid,
+      payload,
+    } = this.jsonWebTokenService.verify<PhoneNumberDto>(token);
     if (!isValid) {
       throw new HttpException(
         { verificationToken: 'Invalid token' },
         HttpStatus.BAD_REQUEST,
       );
     }
-    const { phoneNumber } = payload as PhoneNumberDto;
+    const { phoneNumber } = payload;
     return phoneNumber;
   }
 

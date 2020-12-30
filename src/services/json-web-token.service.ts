@@ -2,10 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { VerifyOptions, verify, VerifyErrors, sign } from 'jsonwebtoken';
 
-export interface VerifyResult {
+export interface VerifyResult<T> {
   isValid: boolean;
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  payload?: object | string;
+  payload?: T;
   error?: VerifyErrors;
 }
 
@@ -16,7 +15,7 @@ export default class JsonWebTokenService {
   constructor(private readonly configService: ConfigService) {
     this.secret = configService.get<string>('JWT_SECRET');
   }
-  public verify(token: string, options?: VerifyOptions): VerifyResult {
+  public verify<T>(token: string, options?: VerifyOptions): VerifyResult<T> {
     try {
       const payload = verify(token, this.secret, options);
       return { isValid: true, payload };
@@ -28,8 +27,10 @@ export default class JsonWebTokenService {
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  public sign(data: string | object, options?: VerifyOptions): string {
+  public sign(
+    data: Record<string, any> | string,
+    options?: VerifyOptions,
+  ): string {
     return sign(data, this.secret, options);
   }
 }
