@@ -8,6 +8,7 @@
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "nest build",
+    "deploy": "./bin/deploy-new-version-aws.sh",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "dev": "./bin/development.sh",
     "start": "nest start",

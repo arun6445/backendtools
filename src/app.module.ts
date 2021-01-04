@@ -20,6 +20,7 @@ import { AccountsModule } from './accounts/accounts.module';
     AccountsModule,
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: `.env.${process.env.APP_ENV}`,
     }),
   ],
   providers: [Logger],
