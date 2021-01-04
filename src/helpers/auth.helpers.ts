@@ -4,4 +4,4 @@ const PASSWORD = {
 };
 
 export const validatePassword = (password: string): boolean =>
-  password.length > PASSWORD.length && !!PASSWORD.regExp.test(password);
+  password.length >= PASSWORD.length && !!PASSWORD.regExp.test(password);

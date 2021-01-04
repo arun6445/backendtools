@@ -1,4 +1,4 @@
-version: "3.6"
+version: '3.6'
 services:
   mongo:
     container_name: dunia-mongo
@@ -32,15 +32,6 @@ services:
       - dunia
     depends_on:
       - mongo
-  # redis:
-  #   container_name: saturday-redis
-  #   image: redis:5.0.5
-  #   command: redis-server --appendonly yes
-  #   hostname: redis
-  #   networks:
-  #     - saturday
-  #   ports:
-  #     - 6379:6379
   api:
     container_name: dunia-api
     build:
@@ -55,34 +46,11 @@ services:
     ports:
       - 3001:3001
       - 8082:8082
+    env_file:
+      - ./development.env
     depends_on:
       #   - redis
       - mongo-replicator
-  # migrator:
-  #   container_name: saturday-migrator
-  #   command: npm run migrate
-  #   build:
-  #     context: ./api
-  #     dockerfile: Dockerfile.dev
-  #   networks:
-  #     - saturday
-  #   volumes:
-  #     - ./api/src:/app/src
-  #   depends_on:
-  #     - mongo-replicator
-  # scheduler:
-  #   container_name: saturday-scheduler
-  #   command: npm run schedule-dev
-  #   build:
-  #     context: ./api
-  #     dockerfile: Dockerfile.dev
-  #   networks:
-  #     - saturday
-  #   volumes:
-  #     - ./api/src:/app/src
-  #   depends_on:
-  #     - mongo-replicator
-
 networks:
   dunia:
     name: dunia-network

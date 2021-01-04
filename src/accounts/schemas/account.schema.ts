@@ -8,6 +8,9 @@ export type AccountDocument = Account & Document;
 @Schema()
 export class Account {
   @Prop()
+  _id: string;
+
+  @Prop()
   email: string;
 
   @Prop()

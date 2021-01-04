@@ -4,8 +4,8 @@ RUN apk update
 
 EXPOSE 3001
 
-COPY ["./package.json", "./package-lock.json", ".eslintrc.js", "tsconfig.build.json", "tsconfig.json", ".env.development", ".env.production", "/app/"]
-
+EXPOSE 3001
+COPY ["./package.json", "./package-lock.json", ".eslintrc.js", "tsconfig.build.json", "tsconfig.json", "/app/"]
 WORKDIR /app
 
 RUN npm ci --quiet

@@ -13,7 +13,7 @@ export class EmailDto {
 }
 export class PhoneNumberWithCodeDto {
   @Length(4, 6, {
-    message: 'Code should not be minimum 4 symbols and maximum 6',
+    message: 'Code should be minimum 4 symbols and maximum 6',
   })
   readonly code: string;
 

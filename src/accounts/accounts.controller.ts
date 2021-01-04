@@ -11,7 +11,6 @@ import { ConfigService } from '@nestjs/config';
 import TwilioService from 'services/twilio.service';
 
 import { AccountsService } from './accounts.service';
-import { AccountDto } from './dto/account.dto';
 import {
   CreateAccountDto,
   PhoneNumberWithCodeDto,
@@ -20,11 +19,12 @@ import {
   EmailDto,
 } from './dto/create-account.dto';
 import { SignInAccountDto } from './dto/signin-account.dto';
-import { AccessTokenDto } from './dto/access-token.dto';
 import {
   FacebookSignUpAccountDto,
   FacebookSignInAccountDto,
 } from './dto/facebook-account';
+import { VerificationToken } from './dto/tokens.dto';
+import { AccountDto } from './dto/account.dto';
 
 @Controller('accounts')
 export class AccountsController {
@@ -40,7 +40,7 @@ export class AccountsController {
   }
 
   @Post('check-email')
-  async checkEmail(@Body() { email }: EmailDto) {
+  async checkEmail(@Body() { email }: EmailDto): Promise<Record<any, never>> {
     const isEmailExist = await this.accountsService.checkEmailExistence(email);
     if (isEmailExist) {
       throw new HttpException(
@@ -52,7 +52,9 @@ export class AccountsController {
   }
 
   @Post('send/code')
-  async sendToTwilio(@Body() { phoneNumber }: PhoneNumberDto) {
+  async sendToTwilio(
+    @Body() { phoneNumber }: PhoneNumberDto,
+  ): Promise<Record<any, never>> {
     const isUserExists = await this.accountsService.checkPhoneNumberExistence(
       phoneNumber,
     );
@@ -62,13 +64,14 @@ export class AccountsController {
         HttpStatus.BAD_REQUEST,
       );
     }
-    return this.twilioService.startVerification(phoneNumber);
+    await this.twilioService.startVerification(phoneNumber);
+    return {};
   }
 
   @Post('verify/code')
   async checkVerificationTwilioCode(
     @Body() { phoneNumber, code }: PhoneNumberWithCodeDto,
-  ) {
+  ): Promise<VerificationToken> {
     return this.twilioService.checkVerification(phoneNumber, code);
   }
 
@@ -76,7 +79,7 @@ export class AccountsController {
   async signUpFacebook(
     @Body()
     { facebookAccessToken, verificationToken }: FacebookSignUpAccountDto,
-  ) {
+  ): Promise<AccountDto> {
     return this.accountsService.signUpFacebook(
       facebookAccessToken,
       verificationToken,
@@ -86,12 +89,14 @@ export class AccountsController {
   @Post('signin/facebook')
   async signInFacebook(
     @Body() { facebookAccessToken }: FacebookSignInAccountDto,
-  ) {
+  ): Promise<AccountDto> {
     return this.accountsService.signInFacebook(facebookAccessToken);
   }
 
   @Post('forgot-password')
-  async forgotPassword(@Body() { phoneNumber }: PhoneNumberDto) {
+  async forgotPassword(
+    @Body() { phoneNumber }: PhoneNumberDto,
+  ): Promise<Record<any, never>> {
     const isUserExists = await this.accountsService.checkPhoneNumberExistence(
       phoneNumber,
     );
@@ -101,20 +106,19 @@ export class AccountsController {
         HttpStatus.BAD_REQUEST,
       );
     }
-    return this.twilioService.startVerification(phoneNumber);
+    await this.twilioService.startVerification(phoneNumber);
+    return {};
   }
 
   @Post('signin')
-  async login(
-    @Body() signInAccountDto: SignInAccountDto,
-  ): Promise<AccessTokenDto> {
+  async login(@Body() signInAccountDto: SignInAccountDto): Promise<AccountDto> {
     return this.accountsService.signIn(signInAccountDto);
   }
 
   @Patch('reset-password')
   async resetPassword(
     @Body() resetPasswordDto: ResetPasswordDto,
-  ): Promise<AccessTokenDto> {
+  ): Promise<AccountDto> {
     return this.accountsService.resetPassword(resetPasswordDto);
   }
 }

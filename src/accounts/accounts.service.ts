@@ -5,23 +5,26 @@ import * as FB from 'fb';
 
 import { getHash, compareTextWithHash } from 'helpers/security.util';
 import JsonWebTokenService from 'services/json-web-token.service';
+import RehiveService from 'services/rehive.service';
+
 import constants from 'app.constants';
+
+import { Account, AccountDocument } from './schemas/account.schema';
 import {
   CreateAccountDto,
   PhoneNumberDto,
   ResetPasswordDto,
 } from './dto/create-account.dto';
-import { AccountDto } from './dto/account.dto';
-import { Account, AccountDocument } from './schemas/account.schema';
 import { SignInAccountDto } from './dto/signin-account.dto';
-import { AccessTokenDto } from './dto/access-token.dto';
 import { FacebookAccount } from './dto/facebook-account';
+import { AccountDto } from './dto/account.dto';
 
 @Injectable()
 export class AccountsService {
   constructor(
     @InjectModel(Account.name) private accountModel: Model<AccountDocument>,
     private jsonWebTokenService: JsonWebTokenService,
+    private readonly rehiveService: RehiveService,
   ) {}
 
   private getInfoFromFacebookToken(token: string): Promise<FacebookAccount> {
@@ -45,22 +48,31 @@ export class AccountsService {
     objectIdentificator,
     phoneNumber = '',
   ): Promise<AccountDocument> {
-    const newUser = new this.accountModel({
-      username: userInfo.name || '',
-      email: userInfo.email || '',
-      phoneNumber,
-      oauth: {
-        google:
-          oauthProvider === constants.OAUTH_PROVIDER.GOOGLE
-            ? objectIdentificator.id
-            : null,
-        facebook:
-          oauthProvider === constants.OAUTH_PROVIDER.FACEBOOK
-            ? objectIdentificator.id
-            : null,
-      },
-    });
-    return newUser.save();
+    const rehiveUser = await this.rehiveService.createUser();
+    if (rehiveUser.status === 'success') {
+      const newUser = new this.accountModel({
+        _id: rehiveUser.data.id,
+        username: userInfo.name || '',
+        email: userInfo.email || '',
+        phoneNumber,
+        oauth: {
+          google:
+            oauthProvider === constants.OAUTH_PROVIDER.GOOGLE
+              ? objectIdentificator.id
+              : null,
+          facebook:
+            oauthProvider === constants.OAUTH_PROVIDER.FACEBOOK
+              ? objectIdentificator.id
+              : null,
+        },
+      });
+      return newUser.save();
+    } else {
+      throw new HttpException(
+        { credentials: 'User has not been registered' },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
   }
 
   private async updateUser(
@@ -117,7 +129,7 @@ export class AccountsService {
   async signUpFacebook(
     facebookAccessToken,
     verificationToken,
-  ): Promise<AccessTokenDto> {
+  ): Promise<AccountDto> {
     const phoneNumber = await this.getPhoneFromToken(verificationToken);
     const isPhoneNumberExists = await this.checkPhoneNumberExistence(
       phoneNumber,
@@ -131,7 +143,10 @@ export class AccountsService {
     return this.processFacebookUser(facebookAccessToken, phoneNumber);
   }
 
-  private async processFacebookUser(facebookAccessToken, phoneNumber) {
+  private async processFacebookUser(
+    facebookAccessToken,
+    phoneNumber,
+  ): Promise<AccountDto> {
     const facebookUser = await this.getInfoFromFacebookToken(
       facebookAccessToken,
     );
@@ -147,14 +162,17 @@ export class AccountsService {
     const accessToken = await this.jsonWebTokenService.sign({
       userId: user._id,
     });
-    return { accessToken };
+    return AccountDto.fromAccountDocument(user, accessToken);
   }
 
-  async signInFacebook(facebookAccessToken): Promise<AccessTokenDto> {
+  async signInFacebook(facebookAccessToken): Promise<AccountDto> {
     return this.processFacebookUser(facebookAccessToken, '');
   }
 
-  public async signIn({ email, password }: SignInAccountDto) {
+  public async signIn({
+    email,
+    password,
+  }: SignInAccountDto): Promise<AccountDto> {
     const isEmailExists = await this.checkEmailExistence(email);
 
     if (!isEmailExists) {
@@ -174,7 +192,7 @@ export class AccountsService {
       const accessToken = await this.jsonWebTokenService.sign({
         userId: user._id,
       });
-      return { accessToken };
+      return AccountDto.fromAccountDocument(user, accessToken);
     } else {
       throw new HttpException(
         { credentials: 'Email or password is not correct' },
@@ -186,7 +204,7 @@ export class AccountsService {
   public async resetPassword({
     password,
     verificationToken,
-  }: ResetPasswordDto) {
+  }: ResetPasswordDto): Promise<AccountDto> {
     const phoneNumber = await this.getPhoneFromToken(verificationToken);
     const isPhoneNumberExists = await this.checkPhoneNumberExistence(
       phoneNumber,
@@ -206,10 +224,10 @@ export class AccountsService {
     const accessToken = await this.jsonWebTokenService.sign({
       userId: user._id,
     });
-    return { accessToken };
+    return AccountDto.fromAccountDocument(user, accessToken);
   }
 
-  async create(createAccountDto: CreateAccountDto) {
+  async create(createAccountDto: CreateAccountDto): Promise<AccountDto> {
     const isEmailExists = await this.checkEmailExistence(
       createAccountDto.email,
     );
@@ -233,23 +251,33 @@ export class AccountsService {
         HttpStatus.BAD_REQUEST,
       );
     }
-    const password = await getHash(createAccountDto.password);
-    const newUser = new this.accountModel({
-      email: createAccountDto.email,
-      username: createAccountDto.username,
-      phoneNumber,
-      password,
-      oauth: {
-        facebook: '',
-        google: '',
-      },
-    });
 
-    await newUser.save();
-    const accessToken = await this.jsonWebTokenService.sign({
-      userId: newUser._id,
-    });
-    return AccountDto.fromAccountDocument(newUser, accessToken);
+    const rehiveUser = await this.rehiveService.createUser();
+    if (rehiveUser.status === 'success') {
+      const password = await getHash(createAccountDto.password);
+      const newUser = new this.accountModel({
+        _id: rehiveUser.data.id,
+        email: createAccountDto.email,
+        username: createAccountDto.username,
+        phoneNumber,
+        password,
+        oauth: {
+          facebook: '',
+          google: '',
+        },
+      });
+
+      await newUser.save();
+      const accessToken = await this.jsonWebTokenService.sign({
+        userId: newUser._id,
+      });
+      return AccountDto.fromAccountDocument(newUser, accessToken);
+    } else {
+      throw new HttpException(
+        { credentials: 'User has not been registered' },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
   }
 
   private async getPhoneFromToken(token: string): Promise<string> {

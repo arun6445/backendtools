@@ -1,5 +1,6 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { VerificationToken } from 'accounts/dto/tokens.dto';
 import * as Twilio from 'twilio';
 import { ServiceContext } from 'twilio/lib/rest/verify/v2/service';
 import {
@@ -84,9 +85,12 @@ export default class TwilioService {
     return phoneNumber === this.TEST_NUMBER;
   }
 
-  async startVerification(phoneNumber: string, channel = 'sms') {
+  async startVerification(
+    phoneNumber: string,
+    channel = 'sms',
+  ): Promise<VerificationInstance> {
     if (this.checkTestData(phoneNumber)) {
-      return { code: this.TEST_VERIFICATION_CODE };
+      return;
     }
     const verification = await this.createVerification(phoneNumber, channel);
     if (!verification.sid) {
@@ -95,10 +99,12 @@ export default class TwilioService {
         HttpStatus.BAD_REQUEST,
       );
     }
-    return {};
   }
 
-  async checkVerification(phone: string, code: string) {
+  async checkVerification(
+    phone: string,
+    code: string,
+  ): Promise<VerificationToken> {
     if (this.checkTestData(phone, code)) {
       const verificationToken = this.jsonWebTokenService.sign({
         phoneNumber: phone,
@@ -121,7 +127,10 @@ export default class TwilioService {
     return { verificationToken };
   }
 
-  private async createVerificationCheck(phone: string, code: string) {
+  private async createVerificationCheck(
+    phone: string,
+    code: string,
+  ): Promise<string> {
     try {
       const { status } = await this.verifyService.verificationChecks.create({
         to: phone,
