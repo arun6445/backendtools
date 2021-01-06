@@ -1,12 +1,17 @@
-FROM node:12
+FROM node:12-alpine
 
-RUN apt-get update
+RUN apk update
 
-EXPOSE 3001 8082
+EXPOSE 3001
+
 COPY ["./package.json", "./package-lock.json", ".eslintrc.js", "tsconfig.build.json", "tsconfig.json", ".env.development", ".env.production", "/app/"]
+
 WORKDIR /app
-RUN npm i -g nest
+
 RUN npm ci --quiet
+
 COPY ./src /app/src
 
-CMD npm run start
+RUN npm run build
+
+CMD npm run start:prod
