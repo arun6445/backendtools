@@ -5,7 +5,10 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { LoggerMiddleware } from 'middlewares/logger.middleware';
 
 import { AppController } from './app.controller';
-import { AccountsModule } from './accounts/accounts.module';
+import { AuthModule } from './auth/auth.module';
+import { TransactionsModule } from './transactions/transactions.module';
+import { RehiveModule } from './rehive/rehive.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -17,10 +20,13 @@ import { AccountsModule } from './accounts/accounts.module';
       }),
       inject: [ConfigService],
     }),
-    AccountsModule,
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    AuthModule,
+    TransactionsModule,
+    RehiveModule,
+    UsersModule,
   ],
   providers: [Logger],
   controllers: [AppController],

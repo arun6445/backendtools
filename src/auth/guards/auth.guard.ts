@@ -1,0 +1,58 @@
+import {
+  CanActivate,
+  ExecutionContext,
+  HttpException,
+  HttpStatus,
+  Injectable,
+} from '@nestjs/common';
+import { JsonWebTokenService } from 'auth/services/jwt.service';
+import { UsersService } from 'users/users.service';
+
+@Injectable()
+export class AuthGuard implements CanActivate {
+  constructor(
+    private jwt: JsonWebTokenService,
+    private usersService: UsersService,
+  ) {}
+
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    const request = context.switchToHttp().getRequest();
+
+    if (!request || !request.headers.authorization) {
+      return false;
+    }
+
+    const payload = this.validateToken(
+      request.headers.authorization.replace('Bearer ', ''),
+    );
+
+    return this.validatePayload(request, payload);
+  }
+
+  validateToken(auth: string) {
+    const decoded = this.jwt.verify<any>(auth);
+
+    if (!decoded.isValid) {
+      throw new HttpException('Forbidden', HttpStatus.UNAUTHORIZED);
+    }
+
+    return decoded.payload;
+  }
+
+  async validatePayload(request: any, payload: any): Promise<boolean> {
+    const { userId } = payload;
+
+    if (!userId) {
+      return false;
+    }
+
+    const user = await this.usersService.findOneById(userId);
+
+    if (!user) {
+      return false;
+    }
+
+    request.user = user;
+    return true;
+  }
+}

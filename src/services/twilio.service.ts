@@ -1,6 +1,6 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { VerificationToken } from 'accounts/dto/tokens.dto';
+import { VerificationToken } from 'auth/dto/tokens.dto';
 import * as Twilio from 'twilio';
 import { ServiceContext } from 'twilio/lib/rest/verify/v2/service';
 import {
@@ -8,7 +8,7 @@ import {
   VerificationStatus,
 } from 'twilio/lib/rest/verify/v2/service/verification';
 
-import JsonWebTokenService from './json-web-token.service';
+import { JsonWebTokenService } from '../auth/services/jwt.service';
 
 const MAX_SEND_ATTEMPT_REACHED_CODE = 60203;
 const VERIFICATION_STATUSES = {

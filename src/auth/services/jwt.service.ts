@@ -9,7 +9,7 @@ export interface VerifyResult<T> {
 }
 
 @Injectable()
-export default class JsonWebTokenService {
+export class JsonWebTokenService {
   private readonly secret: string;
 
   constructor(private readonly configService: ConfigService) {

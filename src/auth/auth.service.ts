@@ -1,15 +1,12 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
 import * as FB from 'fb';
 
 import { getHash, compareTextWithHash } from 'helpers/security.util';
-import JsonWebTokenService from 'services/json-web-token.service';
-import RehiveService from 'services/rehive.service';
+import { JsonWebTokenService } from 'auth/services/jwt.service';
+import RehiveService from 'rehive/rehive.service';
 
 import constants from 'app.constants';
 
-import { Account, AccountDocument } from './schemas/account.schema';
 import {
   CreateAccountDto,
   PhoneNumberDto,
@@ -19,11 +16,12 @@ import {
 import { SignInAccountDto } from './dto/signin-account.dto';
 import { FacebookAccount } from './dto/facebook-account';
 import { AccountDto } from './dto/account.dto';
+import { UsersService } from 'users/users.service';
 
 @Injectable()
-export class AccountsService {
+export class AuthService {
   constructor(
-    @InjectModel(Account.name) private accountModel: Model<AccountDocument>,
+    private usersService: UsersService,
     private jsonWebTokenService: JsonWebTokenService,
     private readonly rehiveService: RehiveService,
   ) {}
@@ -48,11 +46,12 @@ export class AccountsService {
     oauthProvider,
     objectIdentificator,
     phoneNumber = '',
-  ): Promise<AccountDocument> {
-    const rehiveUser = await this.rehiveService.createUser();
-    if (rehiveUser.status === 'success') {
-      const newUser = new this.accountModel({
-        _id: rehiveUser.data.id,
+  ) {
+    try {
+      const rehiveUser = await this.rehiveService.createUser();
+      return this.usersService.create({
+        _id: rehiveUser.id,
+        account: rehiveUser.account,
         username: userInfo.name || '',
         email: userInfo.email || '',
         phoneNumber,
@@ -67,8 +66,7 @@ export class AccountsService {
               : null,
         },
       });
-      return newUser.save();
-    } else {
+    } catch (e) {
       throw new HttpException(
         { credentials: 'User has not been registered' },
         HttpStatus.BAD_REQUEST,
@@ -76,13 +74,9 @@ export class AccountsService {
     }
   }
 
-  private async updateUser(
-    user,
-    oauthProvider,
-    objectIdentificator,
-  ): Promise<AccountDocument> {
-    const userFromMongo = await this.accountModel.findOne({ _id: user._id });
-    return this.accountModel.findOneAndUpdate(
+  private async updateUser(user, oauthProvider, objectIdentificator) {
+    const userFromMongo = await this.usersService.findOneById(user._id);
+    return this.usersService.findOneAndUpdate(
       { _id: user._id },
       {
         oauth: {
@@ -95,13 +89,13 @@ export class AccountsService {
   }
 
   public async checkEmailExistence(email: string): Promise<boolean> {
-    return this.accountModel.exists({
+    return this.usersService.exists({
       email,
     });
   }
 
   public async checkUsernameExistence(username: string): Promise<boolean> {
-    return this.accountModel.exists({
+    return this.usersService.exists({
       username,
     });
   }
@@ -111,13 +105,11 @@ export class AccountsService {
     oauthProvider,
     objectIdentificator,
     phoneNumber = '',
-  ): Promise<AccountDocument> {
+  ) {
     const searchQuery = {
       [`oauth.${oauthProvider}`]: objectIdentificator.id,
     };
-    const user = await this.accountModel.findOne({
-      $or: [searchQuery, { email: 'aaa@mail.ru' || null }],
-    });
+    const user = await this.usersService.findOne(searchQuery);
 
     if (user) {
       return !user.oauth[oauthProvider]
@@ -189,7 +181,7 @@ export class AccountsService {
       );
     }
 
-    const user = await this.accountModel.findOne({ email });
+    const user = await this.usersService.findOne({ email });
 
     const isCorrectPassword = await compareTextWithHash(
       password,
@@ -225,7 +217,7 @@ export class AccountsService {
       );
     }
     const hashPassword = await getHash(password);
-    const user = await this.accountModel.findOneAndUpdate(
+    const user = await this.usersService.update(
       { phoneNumber },
       { password: hashPassword },
     );
@@ -276,34 +268,33 @@ export class AccountsService {
       phoneNumber,
     );
 
-    const rehiveUser = await this.rehiveService.createUser();
+    try {
+      const rehiveUser = await this.rehiveService.createUser();
+      const password = await getHash(createAccountDto.password);
+      const newUser = await this.usersService.create({
+        _id: rehiveUser.id,
+        account: rehiveUser.account,
+        email: createAccountDto.email,
+        username: createAccountDto.username,
+        phoneNumber,
+        password,
+        oauth: {
+          facebook: '',
+          google: '',
+        },
+      });
 
-    if (rehiveUser.status !== 'success') {
+      const accessToken = this.jsonWebTokenService.sign({
+        userId: newUser._id,
+      });
+
+      return AccountDto.fromAccountDocument(newUser, accessToken);
+    } catch (e) {
       throw new HttpException(
         { credentials: 'User has not been registered' },
         HttpStatus.BAD_REQUEST,
       );
     }
-
-    const password = await getHash(createAccountDto.password);
-    const newUser = new this.accountModel({
-      _id: rehiveUser.data.id,
-      email: createAccountDto.email,
-      username: createAccountDto.username,
-      phoneNumber,
-      password,
-      oauth: {
-        facebook: '',
-        google: '',
-      },
-    });
-
-    await newUser.save();
-    const accessToken = this.jsonWebTokenService.sign({
-      userId: newUser._id,
-    });
-
-    return AccountDto.fromAccountDocument(newUser, accessToken);
   }
 
   private getPhoneFromToken(token: string): string {
@@ -324,7 +315,7 @@ export class AccountsService {
   public async checkPhoneNumberExistence(
     phoneNumber: string,
   ): Promise<boolean> {
-    return this.accountModel.exists({
+    return this.usersService.exists({
       phoneNumber,
     });
   }

@@ -1,4 +1,4 @@
-import { Account } from '../schemas/account.schema';
+import { UserDocument } from 'users/model/';
 import { OAuthProvider } from './o-auth-provider.dto';
 
 export class AccountDto {
@@ -17,7 +17,7 @@ export class AccountDto {
   public _id: string;
 
   static fromAccountDocument(
-    account: Account,
+    account: UserDocument,
     accessToken: string,
   ): AccountDto {
     const accountDto = new AccountDto();
