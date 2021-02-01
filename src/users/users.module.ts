@@ -4,8 +4,9 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from 'auth/auth.module';
 import { RehiveModule } from 'rehive/rehive.module';
 
-import { User } from './model/users.document';
-import { UsersSchema } from './model/users.schema';
+import { User, PhoneNumber } from './model/users.document';
+import { UsersSchema, PhoneNumberSchema } from './model/users.schema';
+
 import { UsersService } from './users.service';
 import { UsersController } from './users.controller';
 
@@ -13,6 +14,9 @@ import { UsersController } from './users.controller';
   providers: [UsersService],
   imports: [
     MongooseModule.forFeature([{ name: User.name, schema: UsersSchema }]),
+    MongooseModule.forFeature([
+      { name: PhoneNumber.name, schema: PhoneNumberSchema },
+    ]),
     forwardRef(() => AuthModule),
     RehiveModule,
   ],

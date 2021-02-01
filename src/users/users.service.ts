@@ -1,17 +1,21 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 
 import BaseService from 'base/base.service';
 import RehiveService from 'rehive/rehive.service';
 
-import { UserDocument } from './model';
+import { UserDocument, PhoneNumberDocument } from './model';
+import { SavedPhoneNumberDto } from './users.interfaces';
 
 @Injectable()
 export class UsersService extends BaseService<UserDocument> {
   constructor(
-    @InjectModel(UserDocument.name) model: Model<UserDocument>,
-    private rehiveService: RehiveService,
+    @InjectModel(UserDocument.name)
+    model: Model<UserDocument>,
+    @InjectModel(PhoneNumberDocument.name)
+    private readonly phoneNumberModel: Model<PhoneNumberDocument>,
+    private readonly rehiveService: RehiveService,
   ) {
     super(model);
   }
@@ -22,5 +26,81 @@ export class UsersService extends BaseService<UserDocument> {
 
   getTransactions(userId: string) {
     return this.rehiveService.getTransactions(userId);
+  }
+
+  async getPhoneNumbers(userId: string): Promise<SavedPhoneNumberDto[]> {
+    const user = await this.findOneById(userId);
+    return user.savedPhoneNumbers;
+  }
+
+  private async checkSavedPhoneNumberExistence(query): Promise<boolean> {
+    return this.exists({
+      savedPhoneNumbers: {
+        $elemMatch: query,
+      },
+    });
+  }
+
+  async addPhoneNumber(
+    userId: string,
+    phoneNumber: string,
+    phoneOperator: string,
+  ): Promise<SavedPhoneNumberDto> {
+    const isSavedPhoneNumberExists = await this.checkSavedPhoneNumberExistence({
+      phoneNumber,
+    });
+
+    if (isSavedPhoneNumberExists) {
+      throw new HttpException(
+        { phoneNumber: 'This phonenumber is already added' },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const { savedPhoneNumbers: phones } = await this.findOneById(userId);
+    if (phones.length >= 3) {
+      throw new HttpException(
+        { phoneNumber: 'You can`t add more then 3 phonenumbers' },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const newPhoneNumber = new this.phoneNumberModel({
+      phoneNumber,
+      phoneOperator,
+    });
+
+    const { savedPhoneNumbers } = await this.findOneAndUpdate(
+      { _id: userId },
+      { $push: { savedPhoneNumbers: newPhoneNumber } },
+      { new: true },
+    );
+
+    return savedPhoneNumbers[savedPhoneNumbers.length - 1];
+  }
+
+  async removePhoneNumber(
+    userId: string,
+    phoneNumberId: string,
+  ): Promise<void> {
+    const result = await this.updateOne(
+      {
+        _id: userId,
+        savedPhoneNumbers: {
+          $elemMatch: { _id: new Types.ObjectId(phoneNumberId) },
+        },
+      },
+      {
+        $pull: {
+          savedPhoneNumbers: { _id: new Types.ObjectId(phoneNumberId) },
+        },
+      },
+    );
+    if (result.n === 0) {
+      throw new HttpException(
+        { phoneNumber: 'This phonenumber does`t exist' },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
   }
 }

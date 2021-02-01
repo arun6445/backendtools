@@ -217,7 +217,7 @@ export class AuthService {
       );
     }
     const hashPassword = await getHash(password);
-    const user = await this.usersService.update(
+    const user = await this.usersService.updateOne(
       { phoneNumber },
       { password: hashPassword },
     );
