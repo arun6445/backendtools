@@ -19,7 +19,7 @@ export class AuthGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
 
     if (!request || !request.headers.authorization) {
-      return false;
+      throw new HttpException('Forbidden', HttpStatus.UNAUTHORIZED);
     }
 
     const payload = this.validateToken(
@@ -40,19 +40,20 @@ export class AuthGuard implements CanActivate {
   }
 
   async validatePayload(request: any, payload: any): Promise<boolean> {
-    const { userId } = payload;
+    const { userId, account } = payload;
 
-    if (!userId) {
-      return false;
+    if (!userId || !account) {
+      throw new HttpException('Forbidden', HttpStatus.UNAUTHORIZED);
     }
 
     const user = await this.usersService.findOneById(userId);
 
     if (!user) {
-      return false;
+      throw new HttpException('Forbidden', HttpStatus.UNAUTHORIZED);
     }
 
     request.user = user;
+
     return true;
   }
 }

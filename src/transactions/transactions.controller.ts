@@ -12,6 +12,7 @@ import {
 import { AuthGuard } from 'auth/guards/auth.guard';
 import RehiveService from 'rehive/rehive.service';
 import { CreateTransactionDto, CreateTransferDto } from 'rehive/dto';
+import { AuthRequest } from 'auth/dto/auth-request.dto';
 
 @Controller('transactions')
 @UseGuards(AuthGuard)
@@ -21,11 +22,9 @@ export class TransactionsController {
   @UsePipes(new ValidationPipe({ transform: true }))
   public async credit(
     @Body() transactionData: CreateTransactionDto,
-    @Req() req,
+    @Req() req: AuthRequest,
   ) {
     const { user } = req;
-    console.log(transactionData);
-
     try {
       const transaction = await this.rehiveService.credit(
         user._id,
@@ -41,7 +40,7 @@ export class TransactionsController {
   @UsePipes(new ValidationPipe({ transform: true }))
   public async debit(
     @Body() transactionData: CreateTransactionDto,
-    @Req() req,
+    @Req() req: AuthRequest,
   ) {
     const { user } = req;
 
@@ -58,7 +57,10 @@ export class TransactionsController {
 
   @Post('transfer')
   @UsePipes(new ValidationPipe({ transform: true }))
-  public async transfer(@Body() transferData: CreateTransferDto, @Req() req) {
+  public async transfer(
+    @Body() transferData: CreateTransferDto,
+    @Req() req: AuthRequest,
+  ) {
     const { user } = req;
 
     try {

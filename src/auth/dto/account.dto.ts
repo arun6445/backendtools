@@ -6,6 +6,8 @@ export class AccountDto {
 
   public username: string;
 
+  public account: string;
+
   public phoneNumber: string;
 
   public oauth: OAuthProvider;
@@ -21,6 +23,8 @@ export class AccountDto {
     accessToken: string,
   ): AccountDto {
     const accountDto = new AccountDto();
+    accountDto._id = account._id;
+    accountDto.account = account.account;
     accountDto.email = account.email;
     accountDto.username = account.username;
     accountDto.phoneNumber = account.phoneNumber;

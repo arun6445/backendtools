@@ -4,4 +4,5 @@ export interface RehiveRequestDto {
   method: Method;
   url: string;
   data?: any;
+  params?: any;
 }

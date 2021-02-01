@@ -7,8 +7,10 @@ import {
   Delete,
   Body,
   Param,
+  Query,
 } from '@nestjs/common';
-
+import { DEFAULT_PAGE_SIZE } from 'app.constants';
+import { AuthRequest } from 'auth/dto/auth-request.dto';
 import { AuthGuard } from 'auth/guards/auth.guard';
 import { SavedPhoneNumberDto, AddPhoneNumberDto } from './users.interfaces';
 import { UsersService } from './users.service';
@@ -17,23 +19,43 @@ import { UsersService } from './users.service';
 @UseGuards(AuthGuard)
 export class UsersController {
   constructor(private usersService: UsersService) {}
+  @Get('/current')
+  public getCurrentUser(@Req() req: AuthRequest) {
+    const { user } = req;
+
+    return this.usersService.findOneById(user._id);
+  }
+
   @Get('current/balance')
-  public getCurrentUserBalance(@Req() req) {
+  public getCurrentUserBalance(@Req() req: AuthRequest) {
     const { user } = req;
 
     return this.usersService.getBalance(user.account);
   }
 
   @Get('/current/transactions')
-  public getCurrentUserTransactionsList(@Req() req) {
+  public getCurrentUserTransactionsList(
+    @Req() req: AuthRequest,
+    @Query() params,
+  ) {
+    const { user } = req;
+    const { skip = 0 } = params;
+
+    const page = Math.floor(skip / DEFAULT_PAGE_SIZE) + 1;
+
+    return this.usersService.getTransactions(user._id, page);
+  }
+
+  @Get('/current/transactions/totals')
+  public getCurrentUserTotals(@Req() req: AuthRequest, @Query() params) {
     const { user } = req;
 
-    return this.usersService.getTransactions(user._id);
+    return this.usersService.getTransactionsTotal(user._id, params);
   }
 
   @Get('/current/phonenumbers')
   public getCurrentUserPhoneNumbers(
-    @Req() req,
+    @Req() req: AuthRequest,
   ): Promise<SavedPhoneNumberDto[]> {
     const { user } = req;
 
@@ -42,7 +64,7 @@ export class UsersController {
 
   @Post('/current/phonenumbers')
   public addCurrentUserPhoneNumbers(
-    @Req() req,
+    @Req() req: AuthRequest,
     @Body() { phoneNumber, phoneOperator }: AddPhoneNumberDto,
   ): Promise<SavedPhoneNumberDto> {
     const { user } = req;
@@ -56,7 +78,7 @@ export class UsersController {
 
   @Delete('/current/phoneNumbers/:phoneNumberId')
   public removeCurrentUserPhoneNumber(
-    @Req() req,
+    @Req() req: AuthRequest,
     @Param('phoneNumberId') phoneNumberId: string,
   ) {
     const { user } = req;

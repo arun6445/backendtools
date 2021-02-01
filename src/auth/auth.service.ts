@@ -3,7 +3,6 @@ import * as FB from 'fb';
 
 import { getHash, compareTextWithHash } from 'helpers/security.util';
 import { JsonWebTokenService } from 'auth/services/jwt.service';
-import RehiveService from 'rehive/rehive.service';
 
 import constants from 'app.constants';
 
@@ -17,6 +16,7 @@ import { SignInAccountDto } from './dto/signin-account.dto';
 import { FacebookAccount } from './dto/facebook-account';
 import { AccountDto } from './dto/account.dto';
 import { UsersService } from 'users/users.service';
+import RehiveService from 'rehive/rehive.service';
 
 @Injectable()
 export class AuthService {
@@ -49,6 +49,7 @@ export class AuthService {
   ) {
     try {
       const rehiveUser = await this.rehiveService.createUser();
+
       return this.usersService.create({
         _id: rehiveUser.id,
         account: rehiveUser.account,
@@ -160,6 +161,7 @@ export class AuthService {
 
     const accessToken = await this.jsonWebTokenService.sign({
       userId: user._id,
+      account: user.account,
     });
     return AccountDto.fromAccountDocument(user, accessToken);
   }
@@ -191,6 +193,7 @@ export class AuthService {
     if (isCorrectPassword) {
       const accessToken = await this.jsonWebTokenService.sign({
         userId: user._id,
+        account: user.account,
       });
       return AccountDto.fromAccountDocument(user, accessToken);
     } else {
@@ -223,6 +226,7 @@ export class AuthService {
     );
     const accessToken = await this.jsonWebTokenService.sign({
       userId: user._id,
+      account: user.account,
     });
     return AccountDto.fromAccountDocument(user, accessToken);
   }
@@ -286,6 +290,7 @@ export class AuthService {
 
       const accessToken = this.jsonWebTokenService.sign({
         userId: newUser._id,
+        account: newUser.account,
       });
 
       return AccountDto.fromAccountDocument(newUser, accessToken);

@@ -13,13 +13,18 @@ import {
   CreateTransferDto,
   Transaction,
   Balance,
+  TransactionsWithCount,
 } from 'rehive/dto';
 import {
   RehiveBalance,
   RehiveResponseSuccess,
   RehiveTransaction,
+  RehiveTransactionResponse,
+  RehiveTransactionsFilterOptions,
   RehiveUser,
+  TransactionsTotal,
 } from './rehive.interfaces';
+import { DEFAULT_PAGE_SIZE } from 'app.constants';
 
 @Injectable()
 export default class RehiveService {
@@ -38,6 +43,7 @@ export default class RehiveService {
     method,
     url,
     data,
+    params,
   }: RehiveRequestDto): Promise<T> {
     const headers = { Authorization: `Token ${this.accessToken}` };
     return this.httpService
@@ -45,6 +51,7 @@ export default class RehiveService {
         method,
         url: `${this.rehiveUrl}${url}`,
         headers,
+        params,
         data,
       })
       .pipe(map(({ data: responseData }) => responseData.data))
@@ -127,14 +134,40 @@ export default class RehiveService {
     return Balance.fromRehiveBalanceDto(balance);
   }
 
-  public async getTransactions(userId): Promise<Transaction[]> {
-    const transactions = await this.sendRequestToRehive<RehiveTransaction[]>({
+  public async getTransactions(
+    user: string,
+    page?: number,
+  ): Promise<TransactionsWithCount> {
+    const {
+      results: transactions,
+      count,
+    } = await this.sendRequestToRehive<RehiveTransactionResponse>({
       method: 'get',
-      url: `/admin/transactions/?user=${userId}`,
+      url: `/admin/transactions/`,
+      params: {
+        user,
+        page,
+        page_size: DEFAULT_PAGE_SIZE,
+      },
     });
 
-    return transactions.map((transaction) =>
-      Transaction.fromRehiveTransaction(transaction),
+    return {
+      transactions: transactions.map((transaction) =>
+        Transaction.fromRehiveTransaction(transaction),
+      ),
+      count,
+    };
+  }
+
+  async getTransactionsTotal(params: Partial<RehiveTransactionsFilterOptions>) {
+    const transactionsTotal = await this.sendRequestToRehive<TransactionsTotal>(
+      {
+        method: 'get',
+        url: '/admin/transactions/totals',
+        params,
+      },
     );
+
+    return transactionsTotal;
   }
 }

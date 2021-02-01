@@ -8,6 +8,9 @@ import RehiveService from 'rehive/rehive.service';
 import { UserDocument, PhoneNumberDocument } from './model';
 import { SavedPhoneNumberDto } from './users.interfaces';
 
+import { RehiveTransactionsFilterOptions } from 'rehive/rehive.interfaces';
+import { TransactionsService } from 'transactions/transactions.service';
+
 @Injectable()
 export class UsersService extends BaseService<UserDocument> {
   constructor(
@@ -16,16 +19,54 @@ export class UsersService extends BaseService<UserDocument> {
     @InjectModel(PhoneNumberDocument.name)
     private readonly phoneNumberModel: Model<PhoneNumberDocument>,
     private readonly rehiveService: RehiveService,
+    private transactionsService: TransactionsService,
   ) {
     super(model);
   }
 
-  getBalance(accountReference: string, currency?: string) {
-    return this.rehiveService.getBalance(accountReference, currency);
+  async getBalance(accountReference: string, currency?: string) {
+    try {
+      const balance = await this.rehiveService.getBalance(
+        accountReference,
+        currency,
+      );
+
+      return balance;
+    } catch (e) {
+      throw new HttpException(e.response.data, HttpStatus.BAD_REQUEST);
+    }
   }
 
-  getTransactions(userId: string) {
-    return this.rehiveService.getTransactions(userId);
+  async getTransactions(userId: string, page?: number) {
+    const {
+      transactions,
+      count,
+    } = await this.transactionsService.getUserTransactions(userId, page);
+    const partnerIds = transactions
+      .filter(({ partnerId }) => partnerId !== null)
+      .map(({ partnerId }) => partnerId);
+
+    const partners = await this.model.find({
+      _id: { $in: [...new Set(partnerIds)] },
+    });
+
+    return {
+      count,
+      transactions: transactions.map((item) => ({
+        ...item,
+        partner: partners.find(({ _id }) => _id === item.partnerId) || null,
+      })),
+    };
+  }
+
+  getTransactionsTotal(
+    userId: string,
+    params: Partial<RehiveTransactionsFilterOptions>,
+  ) {
+    return this.transactionsService.getUserTransactionTotal(userId, {
+      currency: 'XOF',
+      ...params,
+    });
   }
 
   async getPhoneNumbers(userId: string): Promise<SavedPhoneNumberDto[]> {

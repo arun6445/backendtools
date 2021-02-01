@@ -38,6 +38,8 @@ export type RehiveTransaction = {
   amount: number;
   balance: number;
   currency: RehiveCurrency;
+  recipientId: string;
+  created: number;
   partner?: {
     user: {
       id: string;
@@ -45,8 +47,28 @@ export type RehiveTransaction = {
   };
 };
 
+export type RehiveTransactionResponse = {
+  count: number;
+  results: RehiveTransaction[];
+};
+
 export type RehiveBalance = {
   balance: number;
   available_balance: number;
   currency: RehiveCurrency;
+};
+
+export type RehiveTransactionsFilterOptions = {
+  user: string;
+  currency: string;
+  created: number;
+  created__gt: number;
+  created__lt: number;
+};
+
+export type TransactionsTotal = {
+  amount: number;
+  total_amount: number;
+  count: number;
+  currency: string;
 };

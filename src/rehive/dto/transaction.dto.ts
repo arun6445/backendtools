@@ -12,7 +12,8 @@ export class Transaction {
   public amount: number;
   public balance: number;
   public currency: RehiveCurrency;
-  public recipientId: string;
+  public created: Date;
+  public partnerId: string;
 
   static fromRehiveTransaction(rehiveTransaction: RehiveTransaction) {
     const transaction = new Transaction();
@@ -24,10 +25,16 @@ export class Transaction {
     transaction.amount = rehiveTransaction.amount;
     transaction.balance = rehiveTransaction.balance;
     transaction.currency = rehiveTransaction.currency;
-    transaction.recipientId = rehiveTransaction.partner
+    transaction.partnerId = rehiveTransaction.partner
       ? rehiveTransaction.partner.user.id
       : null;
+    transaction.created = new Date(rehiveTransaction.created);
 
     return transaction;
   }
 }
+
+export type TransactionsWithCount = {
+  transactions: Transaction[];
+  count: number;
+};

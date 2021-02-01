@@ -3,6 +3,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 
 import { AuthModule } from 'auth/auth.module';
 import { RehiveModule } from 'rehive/rehive.module';
+import { TransactionsModule } from 'transactions/transactions.module';
 
 import { User, PhoneNumber } from './model/users.document';
 import { UsersSchema, PhoneNumberSchema } from './model/users.schema';
@@ -19,6 +20,7 @@ import { UsersController } from './users.controller';
     ]),
     forwardRef(() => AuthModule),
     RehiveModule,
+    TransactionsModule,
   ],
   controllers: [UsersController],
   exports: [UsersService],
