@@ -8,7 +8,7 @@ import {
 import BaseDocument from './base.document';
 
 abstract class BaseService<T extends BaseDocument> {
-  constructor(protected model: Model<T>) {}
+  constructor(protected readonly model: Model<T>) {}
 
   async create(data: Partial<T>): Promise<T> {
     const entity = new this.model(data);
@@ -30,11 +30,8 @@ abstract class BaseService<T extends BaseDocument> {
     return entity.save();
   }
 
-  async update(query: FilterQuery<T>, changes: Partial<T>) {
-    const entity = await this.findOne(query);
-    entity.set(changes);
-
-    return entity.save();
+  async updateOne(query: FilterQuery<T>, changes: UpdateQuery<T>) {
+    return this.model.updateOne(query, changes);
   }
 
   findOneAndUpdate(
@@ -43,6 +40,10 @@ abstract class BaseService<T extends BaseDocument> {
     options?: QueryOptions,
   ) {
     return this.model.findOneAndUpdate(query, updateQuery, options);
+  }
+
+  find(query: FilterQuery<T>) {
+    return this.model.find(query);
   }
 
   exists(query: FilterQuery<T>) {
