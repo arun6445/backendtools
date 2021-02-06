@@ -1,6 +1,6 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import { FilterQuery, Model, Types } from 'mongoose';
 
 import BaseService from 'base/base.service';
 import RehiveService from 'rehive/rehive.service';
@@ -13,7 +13,6 @@ import {
 } from './users.interfaces';
 
 import { compareTextWithHash, getHash } from 'helpers/security.util';
-
 import { RehiveTransactionsFilterOptions } from 'rehive/rehive.interfaces';
 import { TransactionsService } from 'transactions/transactions.service';
 import { VerifyUserDto } from './dto';
@@ -83,26 +82,18 @@ export class UsersService extends BaseService<UserDocument> {
     return user.savedPhoneNumbers;
   }
 
-  private async checkSavedPhoneNumberExistence(query): Promise<boolean> {
-    return this.exists({
-      savedPhoneNumbers: {
-        $elemMatch: query,
-      },
-    });
-  }
-
   async addPhoneNumber(
     userId: string,
     phoneNumber: string,
     phoneOperator: string,
   ): Promise<SavedPhoneNumberDto> {
-    const isSavedPhoneNumberExists = await this.checkSavedPhoneNumberExistence({
-      phoneNumber,
+    const isSavedPhoneNumberExists = await this.checkExistenceInUser(userId, {
+      'savedPhoneNumbers.phoneNumber': phoneNumber,
     });
 
     if (isSavedPhoneNumberExists) {
       throw new HttpException(
-        { phoneNumber: 'This phonenumber is already added' },
+        { phoneNumber: 'This phone number is already added' },
         HttpStatus.BAD_REQUEST,
       );
     }
@@ -110,7 +101,7 @@ export class UsersService extends BaseService<UserDocument> {
     const { savedPhoneNumbers: phones } = await this.findOneById(userId);
     if (phones.length >= 3) {
       throw new HttpException(
-        { phoneNumber: 'You can`t add more then 3 phonenumbers' },
+        { phoneNumber: 'You can`t add more then 3 phone numbers' },
         HttpStatus.BAD_REQUEST,
       );
     }
@@ -129,11 +120,32 @@ export class UsersService extends BaseService<UserDocument> {
     return savedPhoneNumbers[savedPhoneNumbers.length - 1];
   }
 
+  async checkExistenceOutUser(
+    userId: string,
+    query: FilterQuery<UserDocument>,
+  ): Promise<boolean> {
+    return this.exists({
+      _id: { $ne: userId },
+      ...query,
+    });
+  }
+
   async removePhoneNumber(
     userId: string,
     phoneNumberId: string,
   ): Promise<void> {
-    const result = await this.updateOne(
+    const isPhoneNumberExists = await this.checkExistenceInUser(userId, {
+      'savedPhoneNumbers._id': new Types.ObjectId(phoneNumberId),
+    });
+
+    if (!isPhoneNumberExists) {
+      throw new HttpException(
+        { phoneNumber: 'This phone number does not exist' },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    await this.findOneAndUpdate(
       {
         _id: userId,
         savedPhoneNumbers: {
@@ -146,12 +158,6 @@ export class UsersService extends BaseService<UserDocument> {
         },
       },
     );
-    if (result.n === 0) {
-      throw new HttpException(
-        { phoneNumber: 'This phonenumber doesn`t exist' },
-        HttpStatus.BAD_REQUEST,
-      );
-    }
   }
 
   async getUserData(userId: string) {
@@ -202,8 +208,29 @@ export class UsersService extends BaseService<UserDocument> {
     );
   }
 
+  private async checkExistenceInUser(
+    userId: string,
+    query: FilterQuery<PhoneNumberDocument>,
+  ): Promise<boolean> {
+    return this.exists({
+      _id: userId,
+      ...query,
+    });
+  }
+
   async removeDebitCard(userId: string, debitCardId: string): Promise<void> {
-    const result = await this.updateOne(
+    const isDebitCardExists = await this.checkExistenceInUser(userId, {
+      'savedDebitCards._id': new Types.ObjectId(debitCardId),
+    });
+
+    if (!isDebitCardExists) {
+      throw new HttpException(
+        { phoneNumber: 'This card doesn`t exist' },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    await this.updateOne(
       {
         _id: userId,
         savedDebitCards: {
@@ -216,12 +243,6 @@ export class UsersService extends BaseService<UserDocument> {
         },
       },
     );
-    if (result.n === 0) {
-      throw new HttpException(
-        { phoneNumber: 'This card doesn`t exist' },
-        HttpStatus.BAD_REQUEST,
-      );
-    }
   }
 
   async addDebitCard(
@@ -278,6 +299,21 @@ export class UsersService extends BaseService<UserDocument> {
     );
 
     return { success: true };
+  }
+
+  public async updatePhoneNumber(userId: string, phoneNumber: string) {
+    const isPhoneExists = await this.checkExistenceOutUser(userId, {
+      phoneNumber,
+    });
+
+    if (isPhoneExists) {
+      throw new HttpException(
+        { phoneNumber: 'This phone number is already registered' },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    const user = await this.updateOne({ _id: userId }, { phoneNumber });
+    return user;
   }
 
   public async resetPassword(

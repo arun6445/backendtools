@@ -9,9 +9,11 @@ import {
   Body,
   Param,
   Query,
+  Put,
 } from '@nestjs/common';
 import { DEFAULT_PAGE_SIZE } from 'app.constants';
 import { AuthRequest } from 'auth/dto/auth-request.dto';
+import { PhoneNumberDto } from 'auth/dto/create-account.dto';
 import { AuthGuard } from 'auth/guards/auth.guard';
 import { VerifyUserDto } from './dto';
 import {
@@ -20,6 +22,7 @@ import {
   SavedDebitCardDto,
   AddDebitCardDto,
   ResetPasswordDto,
+  UserDto,
 } from './users.interfaces';
 import { UsersService } from './users.service';
 
@@ -28,10 +31,11 @@ import { UsersService } from './users.service';
 export class UsersController {
   constructor(private usersService: UsersService) {}
   @Get('/current')
-  public getCurrentUser(@Req() req: AuthRequest) {
+  public async getCurrentUser(@Req() req: AuthRequest): Promise<UserDto> {
     const { user } = req;
 
-    return this.usersService.findOneById(user._id);
+    const userDocument = await this.usersService.findOneById(user._id);
+    return UserDto.fromUserDocument(userDocument);
   }
 
   @Get('current/balance')
@@ -85,12 +89,12 @@ export class UsersController {
   }
 
   @Delete('/current/phoneNumbers/:phoneNumberId')
-  public removeCurrentUserPhoneNumber(
+  public async removeCurrentUserPhoneNumber(
     @Req() req: AuthRequest,
     @Param('phoneNumberId') phoneNumberId: string,
   ) {
     const { user } = req;
-    this.usersService.removePhoneNumber(user._id, phoneNumberId);
+    await this.usersService.removePhoneNumber(user._id, phoneNumberId);
 
     return {};
   }
@@ -107,6 +111,19 @@ export class UsersController {
   @Get('/:userId')
   getUserById(@Param('userId') userId: string) {
     return this.usersService.getUserData(userId);
+  }
+
+  @Patch('/current/phonenumber')
+  async updatePhoneNumber(
+    @Req() req: AuthRequest,
+    @Body() phone: PhoneNumberDto,
+  ): Promise<UserDto> {
+    const { user } = req;
+    const updatedUser = await this.usersService.updatePhoneNumber(
+      user._id,
+      phone.phoneNumber,
+    );
+    return UserDto.fromUserDocument(updatedUser);
   }
 
   @Get('/current/debitCards')
