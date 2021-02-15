@@ -144,4 +144,12 @@ export class UsersService extends BaseService<UserDocument> {
       );
     }
   }
+
+  async getUserData(userId: string) {
+    const userData = await this.findOneById(userId);
+    if (!userData) {
+      throw new HttpException({ user: 'Not Found' }, HttpStatus.BAD_REQUEST);
+    }
+    return userData;
+  }
 }

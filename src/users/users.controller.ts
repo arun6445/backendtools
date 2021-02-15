@@ -86,4 +86,9 @@ export class UsersController {
 
     return {};
   }
+
+  @Get('/:userId')
+  getUserById(@Param('userId') userId: string) {
+    return this.usersService.getUserData(userId);
+  }
 }
