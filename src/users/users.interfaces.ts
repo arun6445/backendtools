@@ -3,6 +3,11 @@ export class OAuthProvider {
   facebook: string;
 }
 
+export class KYCInfo {
+  status: string;
+  identityAccessKey: string;
+}
+
 export interface SavedPhoneNumberDto {
   _id?: string;
   phoneOperator: string;

@@ -10,6 +10,7 @@ import { SavedPhoneNumberDto } from './users.interfaces';
 
 import { RehiveTransactionsFilterOptions } from 'rehive/rehive.interfaces';
 import { TransactionsService } from 'transactions/transactions.service';
+import { VerifyUserDto } from './dto';
 
 @Injectable()
 export class UsersService extends BaseService<UserDocument> {
@@ -151,5 +152,57 @@ export class UsersService extends BaseService<UserDocument> {
       throw new HttpException({ user: 'Not Found' }, HttpStatus.BAD_REQUEST);
     }
     return userData;
+  }
+
+  async verifyUser(userId: string, verificationData: VerifyUserDto) {
+    const {
+      identityAccessKey,
+      firstName,
+      lastName,
+      country,
+      birthDate,
+    } = verificationData;
+
+    const status = this.rehiveService.getRehiveStatus();
+    const data = await this.rehiveService.updateUserKYCStatus(userId, status);
+
+    return this.updateById(userId, {
+      firstName,
+      lastName,
+      country,
+      birthDate,
+      kyc: {
+        status: data.status,
+        identityAccessKey,
+      },
+    });
+  }
+
+  async updateUserKYC(identityAccessKey: string, status: string) {
+    const user = await this.model.findOne({
+      'kyc.identityAccessKey': identityAccessKey,
+    });
+
+    if (!user) {
+      return { success: false };
+    }
+
+    const rehiveStatus = this.rehiveService.getRehiveStatus(status);
+
+    const data = await this.rehiveService.updateUserKYCStatus(
+      user._id,
+      rehiveStatus,
+    );
+
+    await this.model.updateOne(
+      { _id: user._id },
+      {
+        $set: {
+          'kyc.status': data.status,
+        },
+      },
+    );
+
+    return { success: true };
   }
 }

@@ -72,3 +72,10 @@ export type TransactionsTotal = {
   count: number;
   currency: string;
 };
+
+export type RehiveKYCStatus =
+  | 'obsolete'
+  | 'declined'
+  | 'pending'
+  | 'incomplete'
+  | 'verified';

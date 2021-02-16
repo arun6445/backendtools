@@ -17,6 +17,7 @@ import {
 } from 'rehive/dto';
 import {
   RehiveBalance,
+  RehiveKYCStatus,
   RehiveResponseSuccess,
   RehiveTransaction,
   RehiveTransactionResponse,
@@ -169,5 +170,28 @@ export default class RehiveService {
     );
 
     return transactionsTotal;
+  }
+
+  async updateUserKYCStatus(userId: string, status: RehiveKYCStatus) {
+    return this.sendRequestToRehive<{ status: RehiveKYCStatus }>({
+      method: 'patch',
+      url: `/admin/users/${userId}/kyc`,
+      data: {
+        status,
+      },
+    });
+  }
+
+  getRehiveStatus(status?: string): RehiveKYCStatus {
+    switch (status) {
+      case 'pending':
+        return 'pending';
+      case 'approved':
+        return 'verified';
+      case 'declined':
+        return 'declined';
+      default:
+        return 'incomplete';
+    }
   }
 }

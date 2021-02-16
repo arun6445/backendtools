@@ -24,6 +24,7 @@ import {
 } from './dto/facebook-account';
 import { VerificationToken } from './dto/tokens.dto';
 import { AccountDto } from './dto/account.dto';
+import { KYCInfoDto } from './dto/kyc-info.dto';
 
 @Controller('accounts')
 export class AccountsController {
@@ -98,14 +99,21 @@ export class AccountsController {
   }
 
   @Post('signin')
-  async login(@Body() signInAccountDto: SignInAccountDto): Promise<AccountDto> {
+  public login(
+    @Body() signInAccountDto: SignInAccountDto,
+  ): Promise<AccountDto> {
     return this.authService.signIn(signInAccountDto);
   }
 
   @Patch('reset-password')
-  async resetPassword(
+  public resetPassword(
     @Body() resetPasswordDto: ResetPasswordDto,
   ): Promise<AccountDto> {
     return this.authService.resetPassword(resetPasswordDto);
+  }
+
+  @Post('/kyc')
+  public getVerificationInfo(@Body() data: KYCInfoDto) {
+    return this.authService.updateKYCStatus(data);
   }
 }

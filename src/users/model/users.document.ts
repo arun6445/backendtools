@@ -1,7 +1,7 @@
 import { Prop, Schema } from '@nestjs/mongoose';
 
 import BaseDocument from 'base/base.document';
-import { OAuthProvider } from '../users.interfaces';
+import { KYCInfo, OAuthProvider } from '../users.interfaces';
 import { Document } from 'mongoose';
 
 @Schema()
@@ -29,6 +29,22 @@ export class User extends BaseDocument {
   })
   username: string;
 
+  @Prop({
+    trim: true,
+  })
+  firstName: string;
+
+  @Prop({
+    trim: true,
+  })
+  lastName: string;
+
+  @Prop()
+  birthDate: Date;
+
+  @Prop()
+  country: string;
+
   @Prop()
   account: string;
 
@@ -45,4 +61,7 @@ export class User extends BaseDocument {
 
   @Prop()
   savedPhoneNumbers: Array<PhoneNumber>;
+
+  @Prop()
+  kyc: KYCInfo;
 }

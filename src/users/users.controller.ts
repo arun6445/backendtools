@@ -12,6 +12,7 @@ import {
 import { DEFAULT_PAGE_SIZE } from 'app.constants';
 import { AuthRequest } from 'auth/dto/auth-request.dto';
 import { AuthGuard } from 'auth/guards/auth.guard';
+import { VerifyUserDto } from './dto';
 import { SavedPhoneNumberDto, AddPhoneNumberDto } from './users.interfaces';
 import { UsersService } from './users.service';
 
@@ -85,6 +86,15 @@ export class UsersController {
     this.usersService.removePhoneNumber(user._id, phoneNumberId);
 
     return {};
+  }
+
+  @Post('/current/verify')
+  public verifyUserData(
+    @Req() req: AuthRequest,
+    @Body() verifyUserData: VerifyUserDto,
+  ) {
+    const { user } = req;
+    return this.usersService.verifyUser(user._id, verifyUserData);
   }
 
   @Get('/:userId')

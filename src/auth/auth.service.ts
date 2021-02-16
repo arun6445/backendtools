@@ -17,6 +17,7 @@ import { FacebookAccount } from './dto/facebook-account';
 import { AccountDto } from './dto/account.dto';
 import { UsersService } from 'users/users.service';
 import RehiveService from 'rehive/rehive.service';
+import { KYCInfoDto } from './dto/kyc-info.dto';
 
 @Injectable()
 export class AuthService {
@@ -323,5 +324,9 @@ export class AuthService {
     return this.usersService.exists({
       phoneNumber,
     });
+  }
+
+  public updateKYCStatus(data: KYCInfoDto) {
+    return this.usersService.updateUserKYC(data.key, data.status);
   }
 }
