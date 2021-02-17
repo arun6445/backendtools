@@ -35,3 +35,8 @@ export interface AddDebitCardDto {
   cardExpirationDate: string;
   cardBrand: string;
 }
+
+export interface ResetPasswordDto {
+  currentPassword: string;
+  newPassword: string;
+}

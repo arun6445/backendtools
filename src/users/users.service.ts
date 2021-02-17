@@ -12,6 +12,8 @@ import {
   AddDebitCardDto,
 } from './users.interfaces';
 
+import { compareTextWithHash, getHash } from 'helpers/security.util';
+
 import { RehiveTransactionsFilterOptions } from 'rehive/rehive.interfaces';
 import { TransactionsService } from 'transactions/transactions.service';
 import { VerifyUserDto } from './dto';
@@ -276,5 +278,27 @@ export class UsersService extends BaseService<UserDocument> {
     );
 
     return { success: true };
+  }
+
+  public async resetPassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+  ): Promise<void> {
+    const user = await this.findOne({ _id: userId });
+
+    const isCorrectPassword = await compareTextWithHash(
+      currentPassword,
+      user.password,
+    );
+
+    if (!isCorrectPassword) {
+      throw new HttpException(
+        { currentPassword: 'Current password is not correct' },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    const hashNewPassword = await getHash(newPassword);
+    await this.updateOne({ _id: userId }, { password: hashNewPassword });
   }
 }

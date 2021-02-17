@@ -4,6 +4,7 @@ import {
   Req,
   UseGuards,
   Post,
+  Patch,
   Delete,
   Body,
   Param,
@@ -18,6 +19,7 @@ import {
   AddPhoneNumberDto,
   SavedDebitCardDto,
   AddDebitCardDto,
+  ResetPasswordDto,
 } from './users.interfaces';
 import { UsersService } from './users.service';
 
@@ -145,5 +147,19 @@ export class UsersController {
     const { user } = req;
 
     return this.usersService.addDebitCard(user._id, cardData);
+  }
+
+  @Patch('/current/reset-password')
+  public resetPassword(
+    @Req() req: AuthRequest,
+    @Body() { currentPassword, newPassword }: ResetPasswordDto,
+  ) {
+    const { user } = req;
+
+    return this.usersService.resetPassword(
+      user._id,
+      currentPassword,
+      newPassword,
+    );
   }
 }
