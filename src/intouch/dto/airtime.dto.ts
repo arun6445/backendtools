@@ -1,5 +1,5 @@
 
 
 
-export class Airtime {
+export class AirtimeDto {
 }

@@ -1,2 +1,2 @@
-export class MobileMoneyTransfer {
+export class MobileMoneyTransferDto {
 }
