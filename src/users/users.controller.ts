@@ -168,8 +168,9 @@ export class UsersController {
   }
 
   @Post('/current/send-invite')
-  public sendToTwilio(@Body() { senderPhone, recipientPhone }) {
-    this.twilioService.sendSms(senderPhone, recipientPhone);
+  public sendToTwilio(@Req() req: AuthRequest, @Body() { recipientPhone }) {
+    const { user } = req;
+    this.twilioService.sendSms(user.phoneNumber, recipientPhone);
     return {};
   }
 }
