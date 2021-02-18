@@ -23,6 +23,7 @@ export default class TwilioService {
   private client: Twilio.Twilio;
   private verifyService: ServiceContext;
   private TEST_NUMBER: string;
+  private TWILIO_TEST_NUMBER: string;
   private TEST_VERIFICATION_CODE: string;
 
   constructor(
@@ -35,6 +36,7 @@ export default class TwilioService {
       'TWILIO_VERIFY_SERVICE_SID',
     );
     this.TEST_NUMBER = configService.get<string>('TEST_NUMBER');
+    this.TWILIO_TEST_NUMBER = configService.get<string>('TWILIO_TEST_NUMBER');
     this.TEST_VERIFICATION_CODE = configService.get<string>(
       'TEST_VERIFICATION_CODE',
     );
@@ -85,18 +87,19 @@ export default class TwilioService {
     return phoneNumber === this.TEST_NUMBER;
   }
 
+  private checkTestPhoneNumber(phoneNumber: string): boolean {
+    return phoneNumber === this.TWILIO_TEST_NUMBER;
+  }
+
   async sendSms(senderPhone: string, recipientPhone: string) {
-    try {
-      return await this.client.messages
-        .create({
-          body: 'Hi, sms',
-          from: senderPhone,
-          to: recipientPhone,
-        })
-        .then((mess) => console.log(mess));
-    } catch (error) {
-      console.log('THIS', error);
+    if (this.checkTestPhoneNumber(senderPhone)) {
+      return;
     }
+    return await this.client.messages.create({
+      body: 'Hi, sms',
+      from: senderPhone,
+      to: recipientPhone,
+    });
   }
 
   async startVerification(

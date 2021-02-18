@@ -170,5 +170,6 @@ export class UsersController {
   @Post('/current/send-invite')
   public sendToTwilio(@Body() { senderPhone, recipientPhone }) {
     this.twilioService.sendSms(senderPhone, recipientPhone);
+    return {};
   }
 }
