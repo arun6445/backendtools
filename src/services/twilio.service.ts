@@ -85,6 +85,20 @@ export default class TwilioService {
     return phoneNumber === this.TEST_NUMBER;
   }
 
+  async sendSms(senderPhone: string, recipientPhone: string) {
+    try {
+      return await this.client.messages
+        .create({
+          body: 'Hi, sms',
+          from: senderPhone,
+          to: recipientPhone,
+        })
+        .then((mess) => console.log(mess));
+    } catch (error) {
+      console.log('THIS', error);
+    }
+  }
+
   async startVerification(
     phoneNumber: string,
     channel = 'sms',

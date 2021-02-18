@@ -21,12 +21,16 @@ import {
   AddDebitCardDto,
   ResetPasswordDto,
 } from './users.interfaces';
+import TwilioService from 'services/twilio.service';
 import { UsersService } from './users.service';
 
 @Controller('users')
 @UseGuards(AuthGuard)
 export class UsersController {
-  constructor(private usersService: UsersService) {}
+  constructor(
+    private usersService: UsersService,
+    private twilioService: TwilioService,
+  ) {}
   @Get('/current')
   public getCurrentUser(@Req() req: AuthRequest) {
     const { user } = req;
@@ -161,5 +165,10 @@ export class UsersController {
       currentPassword,
       newPassword,
     );
+  }
+
+  @Post('/current/send-invite')
+  public sendToTwilio(@Body() { senderPhone, recipientPhone }) {
+    this.twilioService.sendSms(senderPhone, recipientPhone);
   }
 }
