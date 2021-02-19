@@ -9,6 +9,7 @@ import { AuthModule } from './auth/auth.module';
 import { TransactionsModule } from './transactions/transactions.module';
 import { RehiveModule } from './rehive/rehive.module';
 import { UsersModule } from './users/users.module';
+import { ContactsModule } from './contacts/contacts.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { UsersModule } from './users/users.module';
     TransactionsModule,
     RehiveModule,
     UsersModule,
+    ContactsModule,
   ],
   providers: [Logger],
   controllers: [AppController],
