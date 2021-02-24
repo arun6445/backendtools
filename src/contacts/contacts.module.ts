@@ -5,11 +5,11 @@ import { ContactsService } from './contacts.service';
 import { Contact, ContactSchema } from './schemas/contacts.schemas';
 
 @Module({
-    providers: [ContactsService],
-    controllers: [ContactsController],
-    imports: [ 
-      MongooseModule.forFeature([{name: Contact.name, schema: ContactSchema }])
-    ],
-    exports: [ContactsService],
+  providers: [ContactsService],
+  controllers: [ContactsController],
+  imports: [
+    MongooseModule.forFeature([{ name: Contact.name, schema: ContactSchema }]),
+  ],
+  exports: [ContactsService],
 })
 export class ContactsModule {}

@@ -1,5 +1,6 @@
 export class CreateContactDto {
     public ownerId: string
-    public phoneContactName: string
-    public phoneContactPhone: string
+    public givenName: string
+    public phoneNumber: string
+    public exist: boolean
 }

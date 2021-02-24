@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 
 import { JsonWebTokenService } from 'auth/services/jwt.service';
+import { ContactsModule } from 'contacts/contacts.module';
 import { RehiveModule } from 'rehive/rehive.module';
 import TwilioService from 'services/twilio.service';
 import { UsersModule } from 'users/users.module';
@@ -10,7 +11,7 @@ import { AuthService } from './auth.service';
 import { AuthGuard } from './guards/auth.guard';
 
 @Module({
-  imports: [UsersModule, RehiveModule],
+  imports: [UsersModule, RehiveModule, ContactsModule],
   providers: [TwilioService, AuthService, JsonWebTokenService, AuthGuard],
   controllers: [AccountsController],
   exports: [AuthGuard, JsonWebTokenService],
