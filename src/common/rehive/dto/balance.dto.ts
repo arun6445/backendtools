@@ -1,4 +1,4 @@
-import { RehiveBalance, RehiveCurrency } from 'rehive/rehive.interfaces';
+import { RehiveBalance, RehiveCurrency } from '../rehive.interfaces';
 
 export class Balance {
   public balance: number;

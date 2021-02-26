@@ -1,6 +1,6 @@
 import { Prop, Schema } from '@nestjs/mongoose';
 
-import BaseDocument from 'base/base.document';
+import BaseDocument from 'common/base/base.document';
 import { KYCInfo, OAuthProvider } from '../users.interfaces';
 import { Document } from 'mongoose';
 

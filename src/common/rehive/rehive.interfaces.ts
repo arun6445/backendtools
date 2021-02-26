@@ -62,6 +62,7 @@ export type RehiveTransactionsFilterOptions = {
   user: string;
   currency: string;
   created: number;
+  status: string;
   created__gt: number;
   created__lt: number;
 };

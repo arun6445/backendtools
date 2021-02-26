@@ -7,8 +7,8 @@ import { LoggerMiddleware } from 'middlewares/logger.middleware';
 import { AppController } from './app.controller';
 import { AuthModule } from './auth/auth.module';
 import { TransactionsModule } from './transactions/transactions.module';
-import { RehiveModule } from './rehive/rehive.module';
 import { UsersModule } from './users/users.module';
+import { CommonModule } from './common/common.module';
 
 @Module({
   imports: [
@@ -25,8 +25,9 @@ import { UsersModule } from './users/users.module';
     }),
     AuthModule,
     TransactionsModule,
-    RehiveModule,
+    CommonModule,
     UsersModule,
+    CommonModule,
   ],
   providers: [Logger],
   controllers: [AppController],

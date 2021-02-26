@@ -7,14 +7,16 @@ import {
 import { map } from 'rxjs/operators';
 import { ConfigService } from '@nestjs/config';
 
-import { RehiveRequestDto } from 'rehive/dto/rehive.dto';
+import { DEFAULT_PAGE_SIZE } from 'app.constants';
+
 import {
   CreateTransactionDto,
   CreateTransferDto,
   Transaction,
   Balance,
   TransactionsWithCount,
-} from 'rehive/dto';
+  RehiveRequestDto,
+} from './dto';
 import {
   PassbaseVerificationStatus,
   RehiveBalance,
@@ -23,10 +25,10 @@ import {
   RehiveTransaction,
   RehiveTransactionResponse,
   RehiveTransactionsFilterOptions,
+  RehiveTransactionStatus,
   RehiveUser,
   TransactionsTotal,
 } from './rehive.interfaces';
-import { DEFAULT_PAGE_SIZE } from 'app.constants';
 
 @Injectable()
 export default class RehiveService {
@@ -194,5 +196,18 @@ export default class RehiveService {
       default:
         return 'incomplete';
     }
+  }
+
+  public updateTransactionStatus(
+    transactionId: string,
+    status: RehiveTransactionStatus,
+  ) {
+    return this.sendRequestToRehive({
+      method: 'PATCH',
+      url: `/admin/transactions/${transactionId}`,
+      data: {
+        status,
+      },
+    });
   }
 }

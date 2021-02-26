@@ -2,7 +2,7 @@ import {
   RehiveTransactionStatus,
   RehiveCurrency,
   RehiveTransaction,
-} from 'rehive/rehive.interfaces';
+} from '../rehive.interfaces';
 
 export class Transaction {
   public id: string;

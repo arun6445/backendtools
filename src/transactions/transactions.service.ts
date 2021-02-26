@@ -1,11 +1,24 @@
 import { Injectable } from '@nestjs/common';
-import { TransactionsWithCount } from 'rehive/dto';
-import { RehiveTransactionsFilterOptions } from 'rehive/rehive.interfaces';
-import RehiveService from 'rehive/rehive.service';
+import { IntouchWebhookResponse } from 'common/intouch/dto';
+import InTouchService from 'common/intouch/intouch.service';
+import {
+  CreateTransactionDto,
+  CreateTransferDto,
+  MobileDepositDto,
+  TransactionsWithCount,
+} from 'common/rehive/dto';
+import {
+  RehiveTransactionsFilterOptions,
+  RehiveTransactionStatus,
+} from 'common/rehive/rehive.interfaces';
+import RehiveService from 'common/rehive/rehive.service';
 
 @Injectable()
 export class TransactionsService {
-  constructor(private rehiveService: RehiveService) {}
+  constructor(
+    private readonly rehiveService: RehiveService,
+    private readonly intouchService: InTouchService,
+  ) {}
 
   getUserTransactions(
     userId: string,
@@ -22,5 +35,52 @@ export class TransactionsService {
       user: userId,
       ...filterOptions,
     });
+  }
+
+  credit(userId: string, transactionData: CreateTransactionDto) {
+    return this.rehiveService.credit(userId, transactionData);
+  }
+
+  debit(userId: string, transactionData: CreateTransactionDto) {
+    return this.rehiveService.debit(userId, transactionData);
+  }
+
+  transfer(userId: string, transferData: CreateTransferDto) {
+    return this.rehiveService.transfer(userId, transferData);
+  }
+
+  async mobileMoneyDeposit(data: MobileDepositDto) {
+    const { userId, amount, provider, otp, phoneNumber } = data;
+    const deposit = await this.rehiveService.credit(userId, data);
+
+    const formattedPhoneNumber = phoneNumber.replace('+226', '');
+
+    try {
+      const intouchTransaction = await this.intouchService.collectFundsFromMobileMoney(
+        deposit.id,
+        amount,
+        provider,
+        formattedPhoneNumber,
+        otp,
+      );
+
+      return intouchTransaction;
+    } catch (e) {
+      await this.rehiveService.updateTransactionStatus(deposit.id, 'Failed');
+      throw e;
+    }
+  }
+
+  processIntouchTransaction({
+    status,
+    partnerTransactionId,
+  }: IntouchWebhookResponse) {
+    const rehiveStatus: RehiveTransactionStatus =
+      status === 'SUCCESSFUL' ? 'Complete' : 'Failed';
+
+    return this.rehiveService.updateTransactionStatus(
+      partnerTransactionId,
+      rehiveStatus,
+    );
   }
 }

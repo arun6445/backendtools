@@ -25,6 +25,7 @@ import {
 import { VerificationToken } from './dto/tokens.dto';
 import { AccountDto } from './dto/account.dto';
 import { KYCInfoDto } from './dto/kyc-info.dto';
+import InTouchService from 'common/intouch/intouch.service';
 
 @Controller('accounts')
 export class AccountsController {
@@ -32,6 +33,7 @@ export class AccountsController {
     private readonly authService: AuthService,
     private readonly twilioService: TwilioService,
     private readonly configService: ConfigService,
+    private readonly intouchService: InTouchService,
   ) {}
 
   @Post('signup')

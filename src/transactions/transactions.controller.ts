@@ -10,14 +10,21 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { AuthGuard } from 'auth/guards/auth.guard';
-import RehiveService from 'rehive/rehive.service';
-import { CreateTransactionDto, CreateTransferDto } from 'rehive/dto';
+import {
+  CreateTransactionDto,
+  CreateTransferDto,
+  MobileDepositDto,
+} from 'common/rehive/dto';
 import { AuthRequest } from 'auth/dto/auth-request.dto';
+import { TransactionsService } from './transactions.service';
+import { Public } from 'common/decorators/public.decorator';
+import { IntouchWebhookResponse } from 'common/intouch/dto';
 
 @Controller('transactions')
 @UseGuards(AuthGuard)
 export class TransactionsController {
-  constructor(private rehiveService: RehiveService) {}
+  constructor(private transactionService: TransactionsService) {}
+
   @Post('credit')
   @UsePipes(new ValidationPipe({ transform: true }))
   public async credit(
@@ -26,7 +33,7 @@ export class TransactionsController {
   ) {
     const { user } = req;
     try {
-      const transaction = await this.rehiveService.credit(
+      const transaction = await this.transactionService.credit(
         user._id,
         transactionData,
       );
@@ -45,7 +52,7 @@ export class TransactionsController {
     const { user } = req;
 
     try {
-      const transaction = await this.rehiveService.debit(
+      const transaction = await this.transactionService.debit(
         user._id,
         transactionData,
       );
@@ -64,7 +71,7 @@ export class TransactionsController {
     const { user } = req;
 
     try {
-      const transaction = await this.rehiveService.transfer(
+      const transaction = await this.transactionService.transfer(
         user._id,
         transferData,
       );
@@ -72,5 +79,31 @@ export class TransactionsController {
     } catch (e) {
       throw new HttpException(e.response.data.data, HttpStatus.BAD_REQUEST);
     }
+  }
+
+  @Post('/mobile-deposit')
+  @UsePipes(new ValidationPipe({ transform: true }))
+  public async mobileMoneyDeposit(
+    @Body() mobileMoneyDepositData: MobileDepositDto,
+  ) {
+    try {
+      const transaction = await this.transactionService.mobileMoneyDeposit(
+        mobileMoneyDepositData,
+      );
+
+      return transaction;
+    } catch (e) {
+      const error = e.response.body;
+      throw new HttpException(
+        error.detailMessage || error.message,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  @Post('/mobile-deposit/webhook')
+  @Public()
+  public mobileMoneyDepositWebhook(@Body() body: IntouchWebhookResponse) {
+    return this.transactionService.processIntouchTransaction(body);
   }
 }

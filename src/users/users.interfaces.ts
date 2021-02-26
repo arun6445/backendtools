@@ -1,4 +1,4 @@
-import { RehiveKYCStatus } from 'rehive/rehive.interfaces';
+import { RehiveKYCStatus } from 'common/rehive/rehive.interfaces';
 
 import { PhoneNumber } from 'users/model/users.document';
 import { UserDocument } from './model';

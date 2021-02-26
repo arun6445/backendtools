@@ -2,8 +2,8 @@ import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { FilterQuery, Model, Types } from 'mongoose';
 
-import BaseService from 'base/base.service';
-import RehiveService from 'rehive/rehive.service';
+import BaseService from 'common/base/base.service';
+import RehiveService from 'common/rehive/rehive.service';
 
 import { UserDocument, PhoneNumberDocument, DebitCardDocument } from './model';
 import {
@@ -17,7 +17,7 @@ import { compareTextWithHash, getHash } from 'helpers/security.util';
 import {
   PassbaseVerificationStatus,
   RehiveTransactionsFilterOptions,
-} from 'rehive/rehive.interfaces';
+} from 'common/rehive/rehive.interfaces';
 import { TransactionsService } from 'transactions/transactions.service';
 import { VerifyUserDto } from './dto';
 
@@ -77,6 +77,7 @@ export class UsersService extends BaseService<UserDocument> {
   ) {
     return this.transactionsService.getUserTransactionTotal(userId, {
       currency: 'XOF',
+      status: 'complete',
       ...params,
     });
   }

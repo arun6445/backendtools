@@ -9,7 +9,6 @@ import {
   Body,
   Param,
   Query,
-  Put,
 } from '@nestjs/common';
 import { DEFAULT_PAGE_SIZE } from 'app.constants';
 import { AuthRequest } from 'auth/dto/auth-request.dto';

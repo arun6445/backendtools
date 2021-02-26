@@ -16,7 +16,7 @@ import { SignInAccountDto } from './dto/signin-account.dto';
 import { FacebookAccount } from './dto/facebook-account';
 import { AccountDto } from './dto/account.dto';
 import { UsersService } from 'users/users.service';
-import RehiveService from 'rehive/rehive.service';
+import RehiveService from 'common/rehive/rehive.service';
 import { KYCInfoDto } from './dto/kyc-info.dto';
 
 @Injectable()
