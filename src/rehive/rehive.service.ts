@@ -16,6 +16,7 @@ import {
   TransactionsWithCount,
 } from 'rehive/dto';
 import {
+  PassbaseVerificationStatus,
   RehiveBalance,
   RehiveKYCStatus,
   RehiveResponseSuccess,
@@ -182,7 +183,7 @@ export default class RehiveService {
     });
   }
 
-  getRehiveStatus(status?: string): RehiveKYCStatus {
+  getRehiveStatus(status?: PassbaseVerificationStatus): RehiveKYCStatus {
     switch (status) {
       case 'pending':
         return 'pending';

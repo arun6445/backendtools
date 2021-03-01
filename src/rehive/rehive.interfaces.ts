@@ -79,3 +79,5 @@ export type RehiveKYCStatus =
   | 'pending'
   | 'incomplete'
   | 'verified';
+
+export type PassbaseVerificationStatus = 'pending' | 'approved' | 'declined';

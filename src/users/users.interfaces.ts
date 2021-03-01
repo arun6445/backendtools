@@ -1,25 +1,7 @@
-import { IsEmail, IsOptional, IsIn } from 'class-validator';
+import { RehiveKYCStatus } from 'rehive/rehive.interfaces';
 
 import { PhoneNumber } from 'users/model/users.document';
 import { UserDocument } from './model';
-
-const countries = [
-  'Benin',
-  'Burkina Faso',
-  'Cabo Verde',
-  'Cote d’Ivoire',
-  'Gambia',
-  'Ghana',
-  'Guinea',
-  'Guinea-Bissau',
-  'Liberia',
-  'Mali',
-  'Niger',
-  'Nigeria',
-  'Senegal',
-  'Sierra Leone',
-  'Togo',
-];
 
 export class OAuthProvider {
   google: string;
@@ -27,8 +9,8 @@ export class OAuthProvider {
 }
 
 export class KYCInfo {
-  status: string;
-  identityAccessKey: string;
+  status: RehiveKYCStatus;
+  identityAccessKey: string | null;
 }
 
 export interface SavedPhoneNumberDto {
@@ -75,6 +57,7 @@ export class UserDto {
   country: string;
   oauth: OAuthProvider;
   savedPhoneNumbers: Array<PhoneNumber>;
+  verificationStatus: RehiveKYCStatus;
 
   static fromUserDocument(userDocument: UserDocument): UserDto {
     const user = new UserDto();
@@ -89,6 +72,7 @@ export class UserDto {
     user.country = userDocument.country;
     user.oauth = userDocument.oauth;
     user.savedPhoneNumbers = userDocument.savedPhoneNumbers;
+    user.verificationStatus = userDocument.kyc.status;
     return user;
   }
 }

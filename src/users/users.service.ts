@@ -14,7 +14,10 @@ import {
 } from './users.interfaces';
 
 import { compareTextWithHash, getHash } from 'helpers/security.util';
-import { RehiveTransactionsFilterOptions } from 'rehive/rehive.interfaces';
+import {
+  PassbaseVerificationStatus,
+  RehiveTransactionsFilterOptions,
+} from 'rehive/rehive.interfaces';
 import { TransactionsService } from 'transactions/transactions.service';
 import { VerifyUserDto } from './dto';
 
@@ -178,7 +181,7 @@ export class UsersService extends BaseService<UserDocument> {
       birthDate,
     } = verificationData;
 
-    const status = this.rehiveService.getRehiveStatus();
+    const status = this.rehiveService.getRehiveStatus('pending');
     const data = await this.rehiveService.updateUserKYCStatus(userId, status);
 
     return this.updateById(userId, {
@@ -274,7 +277,10 @@ export class UsersService extends BaseService<UserDocument> {
     return savedDebitCards[savedDebitCards.length - 1];
   }
 
-  async updateUserKYC(identityAccessKey: string, status: string) {
+  async updateUserKYC(
+    identityAccessKey: string,
+    status: PassbaseVerificationStatus,
+  ) {
     const user = await this.model.findOne({
       'kyc.identityAccessKey': identityAccessKey,
     });

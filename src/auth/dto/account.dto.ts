@@ -1,3 +1,4 @@
+import { RehiveKYCStatus } from 'rehive/rehive.interfaces';
 import { UserDocument } from 'users/model/';
 import { OAuthProvider } from './o-auth-provider.dto';
 
@@ -18,6 +19,8 @@ export class AccountDto {
 
   public _id: string;
 
+  public verificationStatus: RehiveKYCStatus;
+
   static fromAccountDocument(
     account: UserDocument,
     accessToken: string,
@@ -30,6 +33,7 @@ export class AccountDto {
     accountDto.phoneNumber = account.phoneNumber;
     accountDto.oauth = account.oauth;
     accountDto.accessToken = accessToken;
+    accountDto.verificationStatus = account.kyc.status;
 
     return accountDto;
   }

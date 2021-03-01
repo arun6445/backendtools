@@ -57,6 +57,10 @@ export class AuthService {
         username: userInfo.name || '',
         email: userInfo.email || '',
         phoneNumber,
+        kyc: {
+          status: 'incomplete',
+          identityAccessKey: null,
+        },
         oauth: {
           google:
             oauthProvider === constants.OAUTH_PROVIDER.GOOGLE
@@ -285,6 +289,10 @@ export class AuthService {
         username: createAccountDto.username.toLowerCase(),
         phoneNumber,
         password,
+        kyc: {
+          status: 'incomplete',
+          identityAccessKey: null,
+        },
         oauth: {
           facebook: '',
           google: '',
