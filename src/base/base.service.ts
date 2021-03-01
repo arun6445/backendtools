@@ -49,8 +49,8 @@ abstract class BaseService<T extends BaseDocument> {
     });
   }
 
-  find(query: FilterQuery<T>) {
-    return this.model.find(query);
+  find(query: FilterQuery<T>, projection?) {
+    return this.model.find(query, projection);
   }
 
   exists(query: FilterQuery<T>) {

@@ -92,3 +92,10 @@ export class UserDto {
     return user;
   }
 }
+
+export interface FindCrossContactsDto {
+  givenName: string;
+  phoneNumber: string;
+  username?: string;
+  userId?: string;
+}

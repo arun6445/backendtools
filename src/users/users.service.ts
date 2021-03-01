@@ -10,6 +10,7 @@ import {
   SavedPhoneNumberDto,
   SavedDebitCardDto,
   AddDebitCardDto,
+  FindCrossContactsDto,
 } from './users.interfaces';
 
 import { compareTextWithHash, getHash } from 'helpers/security.util';
@@ -336,5 +337,37 @@ export class UsersService extends BaseService<UserDocument> {
     }
     const hashNewPassword = await getHash(newPassword);
     await this.updateOne({ _id: userId }, { password: hashNewPassword });
+  }
+
+  public getCorrectPhone(phoneNumber: string) {
+    return phoneNumber.startsWith('+')
+      ? phoneNumber.replace(/[^+\d]+/g, '')
+      : `+${phoneNumber.replace(/[^+\d]+/g, '')}`;
+  }
+
+  public async findCrossContacts(
+    rawListContacts: FindCrossContactsDto[],
+  ): Promise<FindCrossContactsDto[]> {
+    const rawListContactsPhone = rawListContacts.map((contact) => {
+      return this.getCorrectPhone(contact.phoneNumber);
+    });
+
+    const rawListCrossContacts = await this.find(
+      { phoneNumber: { $in: rawListContactsPhone } },
+      { phoneNumber: 1, username: 1 },
+    );
+
+    return rawListCrossContacts.map((contact) => {
+      const processedListCrossContacts = rawListContacts.find(
+        (rawContact) =>
+          contact.phoneNumber === this.getCorrectPhone(rawContact.phoneNumber),
+      );
+      return {
+        givenName: processedListCrossContacts.givenName,
+        phoneNumber: contact.phoneNumber,
+        username: contact.username,
+        userId: contact._id,
+      };
+    });
   }
 }

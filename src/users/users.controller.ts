@@ -23,6 +23,7 @@ import {
   AddDebitCardDto,
   ResetPasswordDto,
   UserDto,
+  FindCrossContactsDto,
 } from './users.interfaces';
 import { UsersService } from './users.service';
 
@@ -178,5 +179,12 @@ export class UsersController {
       currentPassword,
       newPassword,
     );
+  }
+
+  @Post('/current/crossContacts')
+  public getCrossContacts(
+    @Body() rawListContacts: FindCrossContactsDto[],
+  ): Promise<FindCrossContactsDto[]> {
+    return this.usersService.findCrossContacts(rawListContacts);
   }
 }
