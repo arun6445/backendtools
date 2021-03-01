@@ -90,7 +90,7 @@ export class AccountsController {
     );
     if (!isUserExists) {
       throw new HttpException(
-        { email: 'This phone number is not registered' },
+        { phoneNumber: 'This phone number is not registered' },
         HttpStatus.BAD_REQUEST,
       );
     }

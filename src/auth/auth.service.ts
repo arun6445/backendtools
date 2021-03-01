@@ -175,7 +175,7 @@ export class AuthService {
     email,
     password,
   }: SignInAccountDto): Promise<AccountDto> {
-    const isEmailExists = await this.checkEmailExistence(email);
+    const isEmailExists = await this.checkEmailExistence(email.toLowerCase());
 
     if (!isEmailExists) {
       throw new HttpException(
@@ -184,7 +184,9 @@ export class AuthService {
       );
     }
 
-    const user = await this.usersService.findOne({ email });
+    const user = await this.usersService.findOne({
+      email: email.toLowerCase(),
+    });
 
     const isCorrectPassword = await compareTextWithHash(
       password,
@@ -240,8 +242,8 @@ export class AuthService {
     const errors: CreateAccountError = {};
 
     const [isEmailExist, isUsernameExist, isPhoneExists] = await Promise.all([
-      this.checkEmailExistence(email),
-      this.checkUsernameExistence(username),
+      this.checkEmailExistence(email.toLowerCase()),
+      this.checkUsernameExistence(username.toLowerCase()),
       this.checkPhoneNumberExistence(phoneNumber),
     ]);
 
@@ -268,8 +270,8 @@ export class AuthService {
     );
 
     await this.validateCreateAccount(
-      createAccountDto.email,
-      createAccountDto.username,
+      createAccountDto.email.toLowerCase(),
+      createAccountDto.username.toLowerCase(),
       phoneNumber,
     );
 
@@ -279,8 +281,8 @@ export class AuthService {
       const newUser = await this.usersService.create({
         _id: rehiveUser.id,
         account: rehiveUser.account,
-        email: createAccountDto.email,
-        username: createAccountDto.username,
+        email: createAccountDto.email.toLowerCase(),
+        username: createAccountDto.username.toLowerCase(),
         phoneNumber,
         password,
         oauth: {
