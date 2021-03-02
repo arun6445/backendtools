@@ -1,4 +1,4 @@
-import { RehiveKYCStatus } from 'rehive/rehive.interfaces';
+import { RehiveKYCStatus } from 'common/rehive/rehive.interfaces';
 import { UserDocument } from 'users/model/';
 import { OAuthProvider } from './o-auth-provider.dto';
 
