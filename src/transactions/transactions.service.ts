@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { IntouchWebhookResponse } from 'common/intouch/dto';
 import InTouchService from 'common/intouch/intouch.service';
 import {
+  AirtimeDto,
   CreateTransactionDto,
   CreateTransferDto,
   MobileDepositDto,
@@ -82,5 +83,37 @@ export class TransactionsService {
       partnerTransactionId,
       rehiveStatus,
     );
+  }
+
+  async buyAirtime(airtimeData: AirtimeDto) {
+    const {
+      userId,
+      provider,
+      phoneNumber,
+      amount,
+      status,
+      currency,
+    } = airtimeData;
+    const debit = await this.rehiveService.debit(userId, {
+      amount,
+      status,
+      currency,
+    });
+
+    const formattedPhoneNumber = phoneNumber.replace('+226', '');
+
+    try {
+      const intouchTransaction = await this.intouchService.buyAirtime(
+        debit.id,
+        amount,
+        provider,
+        formattedPhoneNumber,
+      );
+
+      return intouchTransaction;
+    } catch (e) {
+      await this.rehiveService.updateTransactionStatus(debit.id, 'Failed');
+      throw e;
+    }
   }
 }

@@ -11,6 +11,19 @@ export class CreateTransactionDto {
   readonly status?: RehiveTransactionStatus = 'Complete'; // TODO: Remove when payment processor will be implemented
 }
 
+export class AirtimeDto extends CreateTransactionDto {
+  @IsNotEmpty({ message: 'User is required' })
+  userId: string;
+
+  @IsNotEmpty({ message: 'Phone number is required.' })
+  phoneNumber: string;
+
+  @IsNotEmpty({ message: 'Provider is required' })
+  provider: IntouchProvider;
+
+  readonly status?: RehiveTransactionStatus = 'Pending';
+}
+
 export class MobileDepositDto extends CreateTransactionDto {
   @IsNotEmpty({ message: 'User is required' })
   userId: string;

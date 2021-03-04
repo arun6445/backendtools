@@ -7,14 +7,17 @@ export enum IntouchProvider {
 export const INTOUCH_SERVICE = {
   [IntouchProvider.ORANGE]: {
     CASHIN: 'BF_PAIEMENTMARCHAND_OM',
+    CASHOUT: 'BF_CASHIN_OM',
     AIRTIME: 'BF_AIRTIME_ORANGE',
   },
   [IntouchProvider.TELECEL]: {
     CASHIN: '',
+    CASHOUT: '',
     AIRTIME: 'BF_AIRTIME_TELECEL',
   },
   [IntouchProvider.MOOV]: {
-    CASHIN: 'CASHINMOOV',
-    AIRTIME: 'AIRTIMEMOOV',
+    CASHIN: 'BF_PAIEMENTMARCHAND_MOBICASH',
+    CASHOUT: 'BF_CASHIN_MOBICASH',
+    AIRTIME: 'BF_AIRTIME_TELMOB',
   },
 };

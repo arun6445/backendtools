@@ -38,7 +38,7 @@ export default class InTouchService {
     uri: string;
     params?: any;
   }) {
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.APP_ENV === 'development') {
       return Promise.resolve();
     }
 
@@ -71,15 +71,35 @@ export default class InTouchService {
       idFromClient,
       amount,
       recipientNumber,
-      serviceCode: INTOUCH_SERVICE[provider]['CASHIN'],
+      serviceCode: INTOUCH_SERVICE[provider.toUpperCase()]['CASHIN'],
       callback: this.callbackUrl,
       additionnalInfos: {
-        recipientEmail: '',
-        recipientFirstName: '',
-        recipientLastName: '',
         destinataire: recipientNumber,
         otp,
       },
+    };
+
+    const data = await this.makeRequest({
+      body,
+      uri: '/transaction',
+      method: 'PUT',
+    });
+
+    return data;
+  }
+
+  async buyAirtime(
+    idFromClient: string,
+    amount: number,
+    provider: IntouchProvider,
+    recipientNumber: string,
+  ) {
+    const body = {
+      idFromClient,
+      amount,
+      recipientNumber,
+      serviceCode: INTOUCH_SERVICE[provider.toUpperCase()]['AIRTIME'],
+      callback: this.callbackUrl,
     };
 
     const data = await this.makeRequest({

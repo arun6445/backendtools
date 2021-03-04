@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from 'auth/guards/auth.guard';
 import {
+  AirtimeDto,
   CreateTransactionDto,
   CreateTransferDto,
   MobileDepositDto,
@@ -90,6 +91,22 @@ export class TransactionsController {
       const transaction = await this.transactionService.mobileMoneyDeposit(
         mobileMoneyDepositData,
       );
+
+      return transaction;
+    } catch (e) {
+      const error = e.response.body;
+      throw new HttpException(
+        error.detailMessage || error.message,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  @Post('/airtime')
+  @UsePipes(new ValidationPipe({ transform: true }))
+  public async buyAirtime(@Body() airtimeDto: AirtimeDto) {
+    try {
+      const transaction = await this.transactionService.buyAirtime(airtimeDto);
 
       return transaction;
     } catch (e) {
