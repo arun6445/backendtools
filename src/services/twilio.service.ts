@@ -24,6 +24,7 @@ export default class TwilioService {
   private verifyService: ServiceContext;
   private TEST_NUMBER: string;
   private TEST_VERIFICATION_CODE: string;
+  private TWILIO_NUMBER: string;
 
   constructor(
     configService: ConfigService,
@@ -38,6 +39,7 @@ export default class TwilioService {
     this.TEST_VERIFICATION_CODE = configService.get<string>(
       'TEST_VERIFICATION_CODE',
     );
+    this.TWILIO_NUMBER = configService.get<string>('TWILIO_NUMBER');
     this.client = Twilio(twilioAccountSid, authToken);
     this.verifyService = this.client.verify.services(verifyServiceSid);
   }
@@ -144,5 +146,16 @@ export default class TwilioService {
         HttpStatus.BAD_REQUEST,
       );
     }
+  }
+
+  sendSms({ recipientPhone, smsBody }) {
+    if (process.env.APP_ENV === 'development') {
+      return {};
+    }
+    return this.client.messages.create({
+      body: smsBody,
+      from: this.TWILIO_NUMBER,
+      to: recipientPhone,
+    });
   }
 }

@@ -77,7 +77,7 @@ export class UserDto {
   }
 }
 
-export interface FindCrossContactsDto {
+export interface FindContactsDto {
   givenName: string;
   phoneNumber: string;
   username?: string;

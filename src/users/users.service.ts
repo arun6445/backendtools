@@ -10,7 +10,7 @@ import {
   SavedPhoneNumberDto,
   SavedDebitCardDto,
   AddDebitCardDto,
-  FindCrossContactsDto,
+  FindContactsDto,
 } from './users.interfaces';
 
 import { compareTextWithHash, getHash } from 'helpers/security.util';
@@ -353,8 +353,8 @@ export class UsersService extends BaseService<UserDocument> {
   }
 
   public async findCrossContacts(
-    rawListContacts: FindCrossContactsDto[],
-  ): Promise<FindCrossContactsDto[]> {
+    rawListContacts: FindContactsDto[],
+  ): Promise<FindContactsDto[]> {
     const rawListContactsPhone = rawListContacts.map((contact) => {
       return this.getCorrectPhone(contact.phoneNumber);
     });
@@ -376,5 +376,30 @@ export class UsersService extends BaseService<UserDocument> {
         userId: contact._id,
       };
     });
+  }
+
+  public async findNotDuniapayUsers(rawListContacts: FindContactsDto[]) {
+    const rawListContactsPhone = rawListContacts.map((contact) =>
+      this.getCorrectPhone(contact.phoneNumber),
+    );
+
+    const listCrossContacts = await this.find(
+      { phoneNumber: { $in: rawListContactsPhone } },
+      { _id: 0, phoneNumber: 1 },
+    );
+
+    return rawListContacts
+      .map((item) => {
+        return {
+          givenName: item.givenName,
+          phoneNumber: this.getCorrectPhone(item.phoneNumber),
+        };
+      })
+      .filter(({ phoneNumber }) => {
+        const phoneNumberIndex = listCrossContacts.findIndex(
+          (item) => item.phoneNumber === phoneNumber,
+        );
+        return phoneNumberIndex === -1;
+      });
   }
 }

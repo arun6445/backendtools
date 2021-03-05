@@ -9,6 +9,8 @@ import {
   Body,
   Param,
   Query,
+  HttpStatus,
+  HttpException,
 } from '@nestjs/common';
 import { DEFAULT_PAGE_SIZE } from 'app.constants';
 import { AuthRequest } from 'auth/dto/auth-request.dto';
@@ -22,14 +24,18 @@ import {
   AddDebitCardDto,
   ResetPasswordDto,
   UserDto,
-  FindCrossContactsDto,
+  FindContactsDto,
 } from './users.interfaces';
 import { UsersService } from './users.service';
+import TwilioService from 'services/twilio.service';
 
 @Controller('users')
 @UseGuards(AuthGuard)
 export class UsersController {
-  constructor(private usersService: UsersService) {}
+  constructor(
+    private usersService: UsersService,
+    private twilioService: TwilioService,
+  ) {}
   @Get('/current')
   public async getCurrentUser(@Req() req: AuthRequest): Promise<UserDto> {
     const { user } = req;
@@ -181,9 +187,31 @@ export class UsersController {
   }
 
   @Post('/current/crossContacts')
-  public getCrossContacts(
-    @Body() rawListContacts: FindCrossContactsDto[],
-  ): Promise<FindCrossContactsDto[]> {
+  public getCrossContacts(@Body() rawListContacts: FindContactsDto[]) {
     return this.usersService.findCrossContacts(rawListContacts);
+  }
+
+  @Post('/current/notDuniapayUsers')
+  public getNotDuniapayUsers(@Body() rawListContacts: FindContactsDto[]) {
+    return this.usersService.findNotDuniapayUsers(rawListContacts);
+  }
+
+  @Post('/current/send-invite')
+  public async sendToTwilio(@Body() { recipientPhone, smsBody }) {
+    try {
+      const twilioAnswer = await this.twilioService.sendSms({
+        recipientPhone,
+        smsBody,
+      });
+      return twilioAnswer;
+    } catch (e) {
+      throw new HttpException(
+        {
+          code:
+            'An error occurred while creating your message, please, try again later',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
   }
 }

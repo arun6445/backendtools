@@ -14,9 +14,10 @@ import {
 
 import { UsersService } from './users.service';
 import { UsersController } from './users.controller';
+import TwilioService from 'services/twilio.service';
 
 @Module({
-  providers: [UsersService],
+  providers: [UsersService, TwilioService],
   imports: [
     MongooseModule.forFeature([
       { name: User.name, schema: UsersSchema },
