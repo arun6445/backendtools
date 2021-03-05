@@ -16,7 +16,7 @@ import { DEFAULT_PAGE_SIZE } from 'app.constants';
 import { AuthRequest } from 'auth/dto/auth-request.dto';
 import { PhoneNumberDto } from 'auth/dto/create-account.dto';
 import { AuthGuard } from 'auth/guards/auth.guard';
-import { VerifyUserDto } from './dto';
+import { VerifyUserDto, CryptoTypesDto } from './dto';
 import {
   SavedPhoneNumberDto,
   AddPhoneNumberDto,
@@ -25,6 +25,8 @@ import {
   ResetPasswordDto,
   UserDto,
   FindContactsDto,
+  CryptoBalanceDto,
+  CryptoAssetIdDto,
 } from './users.interfaces';
 import { UsersService } from './users.service';
 import TwilioService from 'services/twilio.service';
@@ -51,6 +53,19 @@ export class UsersController {
     return this.usersService.getBalance(user.account);
   }
 
+  @Get('current/crypto')
+  public async getCurrentCryptoBalance(
+    @Req() req: AuthRequest,
+    @Query('crypto') crypto: string,
+  ): Promise<CryptoBalanceDto> {
+    const { user } = req;
+    const cryptoBalance = await this.usersService.getCryptoBalance(
+      user.username,
+      crypto,
+    );
+    return { cryptoBalance: cryptoBalance.toString() };
+  }
+
   @Get('/current/transactions')
   public getCurrentUserTransactionsList(
     @Req() req: AuthRequest,
@@ -69,6 +84,20 @@ export class UsersController {
     const { user } = req;
 
     return this.usersService.getTransactionsTotal(user._id, params);
+  }
+
+  @Get('current/crypto-id')
+  public async getCryptoAssetId(
+    @Req() req: AuthRequest,
+    @Query('crypto') crypto: string,
+  ): Promise<CryptoAssetIdDto> {
+    const { user } = req;
+
+    const assetId = await this.usersService.getCryptoAssetId(
+      user.username,
+      crypto,
+    );
+    return { assetId };
   }
 
   @Get('/current/phonenumbers')

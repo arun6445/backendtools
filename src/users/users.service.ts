@@ -4,6 +4,7 @@ import { FilterQuery, Model, Types } from 'mongoose';
 
 import BaseService from 'common/base/base.service';
 import RehiveService from 'common/rehive/rehive.service';
+import FireblocksService from 'common/fireblocks/fireblocks.service';
 
 import { UserDocument, PhoneNumberDocument, DebitCardDocument } from './model';
 import {
@@ -12,14 +13,14 @@ import {
   AddDebitCardDto,
   FindContactsDto,
 } from './users.interfaces';
-
-import { compareTextWithHash, getHash } from 'helpers/security.util';
+import { VerifyUserDto } from './dto';
 import {
   PassbaseVerificationStatus,
   RehiveTransactionsFilterOptions,
 } from 'common/rehive/rehive.interfaces';
+
+import { compareTextWithHash, getHash } from 'helpers/security.util';
 import { TransactionsService } from 'transactions/transactions.service';
-import { VerifyUserDto } from './dto';
 
 @Injectable()
 export class UsersService extends BaseService<UserDocument> {
@@ -31,6 +32,7 @@ export class UsersService extends BaseService<UserDocument> {
     @InjectModel(DebitCardDocument.name)
     private readonly debitCardModel: Model<DebitCardDocument>,
     private readonly rehiveService: RehiveService,
+    private readonly fireblocksService: FireblocksService,
     private transactionsService: TransactionsService,
   ) {
     super(model);
@@ -47,6 +49,10 @@ export class UsersService extends BaseService<UserDocument> {
     } catch (e) {
       throw new HttpException(e.response.data, HttpStatus.BAD_REQUEST);
     }
+  }
+
+  async getCryptoBalance(username: string, crypto: string): Promise<string> {
+    return this.fireblocksService.getBalanceAssetVaultAccount(username, crypto);
   }
 
   async getTransactions(userId: string, page?: number) {
@@ -69,6 +75,10 @@ export class UsersService extends BaseService<UserDocument> {
         partner: partners.find(({ _id }) => _id === item.partnerId) || null,
       })),
     };
+  }
+
+  async getCryptoAssetId(username: string, crypto: string): Promise<string> {
+    return this.fireblocksService.getAssetId(username, crypto);
   }
 
   getTransactionsTotal(

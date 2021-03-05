@@ -46,6 +46,13 @@ export interface ResetPasswordDto {
   newPassword: string;
 }
 
+export interface CryptoAssetIdDto {
+  assetId: string;
+}
+export interface CryptoBalanceDto {
+  cryptoBalance: string;
+}
+
 export class UserDto {
   _id: string;
   email: string;

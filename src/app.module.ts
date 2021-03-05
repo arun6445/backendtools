@@ -25,7 +25,6 @@ import { CommonModule } from './common/common.module';
     }),
     AuthModule,
     TransactionsModule,
-    CommonModule,
     UsersModule,
     CommonModule,
   ],
