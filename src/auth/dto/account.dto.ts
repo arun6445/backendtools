@@ -21,6 +21,14 @@ export class AccountDto {
 
   public verificationStatus: RehiveKYCStatus;
 
+  public birthDate: Date | null;
+
+  public country: string;
+
+  public firstName: string;
+
+  public lastName: string;
+
   static fromAccountDocument(
     account: UserDocument,
     accessToken: string,
@@ -29,6 +37,10 @@ export class AccountDto {
     accountDto._id = account._id;
     accountDto.account = account.account;
     accountDto.email = account.email;
+    accountDto.birthDate = account.birthDate;
+    accountDto.country = account.country;
+    accountDto.firstName = account.firstName;
+    accountDto.lastName = account.lastName;
     accountDto.username = account.username;
     accountDto.phoneNumber = account.phoneNumber;
     accountDto.oauth = account.oauth;
