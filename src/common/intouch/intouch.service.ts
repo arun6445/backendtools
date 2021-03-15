@@ -1,6 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { IntouchProvider, INTOUCH_SERVICE } from './intouch.constants';
+import {
+  IntouchProvider,
+  INTOUCH_SERVICE,
+  PARTNER_ID,
+} from './intouch.constants';
 import * as rp from 'request-promise';
 
 @Injectable()
@@ -32,14 +36,16 @@ export default class InTouchService {
     method,
     uri,
     params,
+    baseUrl = this.baseUrl,
   }: {
     body: any;
     method: string;
     uri: string;
+    baseUrl?: string;
     params?: any;
   }) {
     if (process.env.APP_ENV === 'development') {
-      return Promise.resolve();
+      return Promise.resolve({});
     }
 
     return rp({
@@ -49,12 +55,12 @@ export default class InTouchService {
         pass: this.authPassword,
         sendImmediately: false,
       },
-      uri: `${this.baseUrl}${uri}`,
+      uri: `${baseUrl}${uri}`,
       body,
       qs: {
-        ...params,
         loginAgent: this.loginAgent,
         passwordAgent: this.passwordAgent,
+        ...params,
       },
       json: true,
     });
@@ -109,5 +115,28 @@ export default class InTouchService {
     });
 
     return data;
+  }
+
+  async withdrawal(
+    partnerTransactionId: string,
+    amount: number,
+    provider: string,
+    phoneNumber: string,
+  ) {
+    return this.makeRequest({
+      method: 'POST',
+      baseUrl: `https://api.gutouch.com/v1/${this.provider}`,
+      uri: '/cashin',
+      body: {
+        partner_transaction_id: partnerTransactionId,
+        amount: amount,
+        call_back_url: this.callbackUrl,
+        login_api: this.loginAgent,
+        password_api: this.passwordAgent,
+        partner_id: PARTNER_ID,
+        service_id: INTOUCH_SERVICE[provider.toUpperCase()]['CASHOUT'],
+        recipient_phone_number: phoneNumber,
+      },
+    });
   }
 }

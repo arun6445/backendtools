@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from 'auth/guards/auth.guard';
 import {
-  AirtimeDto,
+  WithdrawalDto,
   CreateTransactionDto,
   CreateTransferDto,
   MobileDepositDto,
@@ -104,7 +104,7 @@ export class TransactionsController {
 
   @Post('/airtime')
   @UsePipes(new ValidationPipe({ transform: true }))
-  public async buyAirtime(@Body() airtimeDto: AirtimeDto) {
+  public async buyAirtime(@Body() airtimeDto: WithdrawalDto) {
     try {
       const transaction = await this.transactionService.buyAirtime(airtimeDto);
 
@@ -122,5 +122,23 @@ export class TransactionsController {
   @Public()
   public mobileMoneyDepositWebhook(@Body() body: IntouchWebhookResponse) {
     return this.transactionService.processIntouchTransaction(body);
+  }
+
+  @Post('/withdrawal')
+  @UsePipes(new ValidationPipe({ transform: true }))
+  public async withdrawal(@Body() withdrawalDto: WithdrawalDto) {
+    try {
+      const transaction = await this.transactionService.withdrawal(
+        withdrawalDto,
+      );
+
+      return transaction;
+    } catch (e) {
+      const error = e.response.body || e.response.data;
+      throw new HttpException(
+        error.detailMessage || error.message,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
   }
 }

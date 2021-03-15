@@ -4,6 +4,8 @@ export enum IntouchProvider {
   TELECEL = 'TELECEL',
 }
 
+export const PARTNER_ID = 'BF1163';
+
 export const INTOUCH_SERVICE = {
   [IntouchProvider.ORANGE]: {
     CASHIN: 'BF_PAIEMENTMARCHAND_OM',
