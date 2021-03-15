@@ -72,6 +72,9 @@ export class User extends BaseDocument {
   phoneNumber: string;
 
   @Prop()
+  isHiddenBalance: boolean;
+
+  @Prop()
   password: string;
 
   @Prop()

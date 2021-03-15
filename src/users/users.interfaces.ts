@@ -50,6 +50,7 @@ export class UserDto {
   _id: string;
   email: string;
   phoneNumber: string;
+  isHiddenBalance: boolean;
   firstName: string;
   lastName: string;
   username: string;
@@ -65,6 +66,7 @@ export class UserDto {
     user._id = userDocument._id;
     user.email = userDocument.email;
     user.phoneNumber = userDocument.phoneNumber;
+    user.isHiddenBalance = userDocument.isHiddenBalance;
     user.firstName = userDocument.firstName;
     user.lastName = userDocument.lastName;
     user.username = userDocument.username;

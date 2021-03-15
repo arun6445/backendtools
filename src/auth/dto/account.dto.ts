@@ -11,6 +11,8 @@ export class AccountDto {
 
   public phoneNumber: string;
 
+  public isHiddenBalance: boolean;
+
   public oauth: OAuthProvider;
 
   public accessToken: string;
@@ -31,6 +33,7 @@ export class AccountDto {
     accountDto.email = account.email;
     accountDto.username = account.username;
     accountDto.phoneNumber = account.phoneNumber;
+    accountDto.isHiddenBalance = account.isHiddenBalance;
     accountDto.oauth = account.oauth;
     accountDto.accessToken = accessToken;
     accountDto.verificationStatus = account.kyc.status;

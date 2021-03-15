@@ -346,6 +346,10 @@ export class UsersService extends BaseService<UserDocument> {
     await this.updateOne({ _id: userId }, { password: hashNewPassword });
   }
 
+  public hideBalance(userId: string, isHiddenBalance: boolean) {
+    this.updateOne({ _id: userId }, { isHiddenBalance });
+  }
+
   public getCorrectPhone(phoneNumber: string) {
     return phoneNumber.startsWith('+')
       ? phoneNumber.replace(/[^+\d]+/g, '')

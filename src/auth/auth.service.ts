@@ -57,6 +57,7 @@ export class AuthService {
         username: userInfo.name || '',
         email: userInfo.email || '',
         phoneNumber,
+        isHiddenBalance: false,
         kyc: {
           status: 'incomplete',
           identityAccessKey: null,
@@ -289,6 +290,7 @@ export class AuthService {
         username: createAccountDto.username.toLowerCase(),
         phoneNumber,
         password,
+        isHiddenBalance: false,
         kyc: {
           status: 'incomplete',
           identityAccessKey: null,

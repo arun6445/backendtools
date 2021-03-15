@@ -214,4 +214,10 @@ export class UsersController {
       );
     }
   }
+
+  @Patch('/current/hideBalance')
+  public hideBalance(@Req() req: AuthRequest, @Body() { isHiddenBalance }) {
+    const { user } = req;
+    return this.usersService.hideBalance(user._id, isHiddenBalance);
+  }
 }
