@@ -49,8 +49,11 @@ export interface ResetPasswordDto {
 export interface CryptoAssetIdDto {
   assetId: string;
 }
-export interface CryptoBalanceDto {
+export interface CryptoInfoDto {
+  sellCryptoPrice: string;
+  dynamic: string;
   cryptoBalance: string;
+  convertedUSDBalance: number;
 }
 
 export class UserDto {

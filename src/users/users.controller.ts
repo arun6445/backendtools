@@ -25,7 +25,7 @@ import {
   ResetPasswordDto,
   UserDto,
   FindContactsDto,
-  CryptoBalanceDto,
+  CryptoInfoDto,
   CryptoAssetIdDto,
 } from './users.interfaces';
 import { UsersService } from './users.service';
@@ -57,13 +57,9 @@ export class UsersController {
   public async getCurrentCryptoBalance(
     @Req() req: AuthRequest,
     @Query('crypto') crypto: string,
-  ): Promise<CryptoBalanceDto> {
+  ): Promise<CryptoInfoDto> {
     const { user } = req;
-    const cryptoBalance = await this.usersService.getCryptoBalance(
-      user.username,
-      crypto,
-    );
-    return { cryptoBalance: cryptoBalance.toString() };
+    return this.usersService.getCryptoInfo(user.username, crypto);
   }
 
   @Get('/current/transactions')

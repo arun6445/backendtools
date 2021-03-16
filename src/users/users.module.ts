@@ -15,6 +15,7 @@ import {
 import { UsersService } from './users.service';
 import { UsersController } from './users.controller';
 import TwilioService from 'services/twilio.service';
+import CryptoModule from 'crypto/crypto.module';
 
 @Module({
   providers: [UsersService, TwilioService],
@@ -27,6 +28,7 @@ import TwilioService from 'services/twilio.service';
     forwardRef(() => AuthModule),
     CommonModule,
     TransactionsModule,
+    CryptoModule,
   ],
   controllers: [UsersController],
   exports: [UsersService],

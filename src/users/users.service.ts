@@ -1,10 +1,14 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { FilterQuery, Model, Types } from 'mongoose';
+import { ConfigService } from '@nestjs/config';
 
 import BaseService from 'common/base/base.service';
 import RehiveService from 'common/rehive/rehive.service';
 import FireblocksService from 'common/fireblocks/fireblocks.service';
+import { TransactionsService } from 'transactions/transactions.service';
+import CryptoService from 'crypto/crypto.service';
+import Coinbase from 'common/coinbase/coinbase.service';
 
 import { UserDocument, PhoneNumberDocument, DebitCardDocument } from './model';
 import {
@@ -12,6 +16,7 @@ import {
   SavedDebitCardDto,
   AddDebitCardDto,
   FindContactsDto,
+  CryptoInfoDto,
 } from './users.interfaces';
 import { VerifyUserDto } from './dto';
 import {
@@ -20,10 +25,13 @@ import {
 } from 'common/rehive/rehive.interfaces';
 
 import { compareTextWithHash, getHash } from 'helpers/security.util';
-import { TransactionsService } from 'transactions/transactions.service';
+import { getCryptoCoinbasePair, getCryptoSymbol } from 'helpers/crypto.helpers';
 
 @Injectable()
 export class UsersService extends BaseService<UserDocument> {
+  private duniapayFeeExchange;
+  private duniapayPercentExchange;
+
   constructor(
     @InjectModel(UserDocument.name)
     model: Model<UserDocument>,
@@ -31,11 +39,20 @@ export class UsersService extends BaseService<UserDocument> {
     private readonly phoneNumberModel: Model<PhoneNumberDocument>,
     @InjectModel(DebitCardDocument.name)
     private readonly debitCardModel: Model<DebitCardDocument>,
+    private readonly cryptoService: CryptoService,
     private readonly rehiveService: RehiveService,
     private readonly fireblocksService: FireblocksService,
+    private readonly coinbaseService: Coinbase,
     private transactionsService: TransactionsService,
+    private readonly configService: ConfigService,
   ) {
     super(model);
+    this.duniapayFeeExchange = this.configService.get<string>(
+      'DUNIAPAY_FEE_EXCHANGE',
+    );
+    this.duniapayPercentExchange = this.configService.get<string>(
+      'DUNIAPAY_PERCENT_EXCHANGE',
+    );
   }
 
   async getBalance(accountReference: string, currency?: string) {
@@ -51,8 +68,55 @@ export class UsersService extends BaseService<UserDocument> {
     }
   }
 
-  async getCryptoBalance(username: string, crypto: string): Promise<string> {
-    return this.fireblocksService.getBalanceAssetVaultAccount(username, crypto);
+  private countDuniaPayPrice(price: number): number {
+    return (
+      Number(
+        Math.floor(
+          (price * (100 + Number(this.duniapayPercentExchange))) / 100,
+        ),
+      ) + Number(this.duniapayFeeExchange)
+    );
+  }
+
+  async getCryptoInfo(
+    username: string,
+    crypto: string,
+  ): Promise<CryptoInfoDto> {
+    const balance = await this.fireblocksService.getBalanceAssetVaultAccount(
+      username,
+      crypto,
+    );
+
+    const currencyPair = getCryptoCoinbasePair({
+      isBuyCrypto: true,
+      cryptoCurrency: crypto,
+      fiatCurrency: 'USD',
+    });
+    const cryptoSymbol = getCryptoSymbol(crypto);
+    if (!currencyPair || !cryptoSymbol) {
+      throw new HttpException(
+        {
+          exchangeRate:
+            'Unfortunately duniapay does not support your crypto currency yet, but we will consider adding it in the future.',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    const dynamic = await this.cryptoService.getCryptoDinamic(
+      crypto,
+      cryptoSymbol,
+    );
+    const sellCryptoPrice = await this.coinbaseService.getSellPrice(
+      currencyPair,
+    );
+    const convertedUSDBalance = Number(balance) * sellCryptoPrice;
+
+    return {
+      cryptoBalance: balance,
+      convertedUSDBalance,
+      sellCryptoPrice: sellCryptoPrice.toString(),
+      dynamic,
+    };
   }
 
   async getTransactions(userId: string, page?: number) {
