@@ -17,6 +17,8 @@ import {
   AddDebitCardDto,
   FindContactsDto,
   CryptoInfoDto,
+  CryptoFiatRequestDto,
+  CryptoFiatBalanceDto,
 } from './users.interfaces';
 import { VerifyUserDto } from './dto';
 import {
@@ -66,6 +68,51 @@ export class UsersService extends BaseService<UserDocument> {
     } catch (e) {
       throw new HttpException(e.response.data, HttpStatus.BAD_REQUEST);
     }
+  }
+
+  public async getCryptoFiatBalance({
+    accountReference,
+    username,
+    crypto,
+  }: CryptoFiatRequestDto): Promise<CryptoFiatBalanceDto> {
+    const { availableBalance: fiatBalance } = await this.getBalance(
+      accountReference,
+    );
+
+    const cryptoBalance = await this.fireblocksService.getBalanceAssetVaultAccount(
+      username,
+      crypto,
+    );
+
+    const currencyPair = getCryptoCoinbasePair({
+      isBuyCrypto: true,
+      cryptoCurrency: crypto,
+      fiatCurrency: 'XOF',
+    });
+
+    if (!currencyPair) {
+      throw new HttpException(
+        {
+          exchangeRate:
+            'Unfortunately duniapay does not support your crypto currency yet, but we will consider adding it in the future.',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    const sellCryptoPrice = await this.coinbaseService.getSellPrice(
+      currencyPair,
+    );
+
+    const sellPriceWithDuniapayFee = this.countDuniaPayPrice(sellCryptoPrice);
+
+    const buyCryptoPrice = await this.coinbaseService.getBuyPrice(currencyPair);
+    const buyPriceWithDuniapayFee = this.countDuniaPayPrice(buyCryptoPrice);
+    return {
+      buyCrypto: buyPriceWithDuniapayFee,
+      sellCrypto: sellPriceWithDuniapayFee,
+      cryptoBalance,
+      fiatBalance,
+    };
   }
 
   private countDuniaPayPrice(price: number): number {

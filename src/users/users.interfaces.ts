@@ -56,6 +56,19 @@ export interface CryptoInfoDto {
   convertedUSDBalance: number;
 }
 
+export interface CryptoFiatRequestDto {
+  accountReference: string;
+  currency?: string;
+  username: string;
+  crypto: string;
+}
+
+export interface CryptoFiatBalanceDto {
+  buyCrypto: number;
+  sellCrypto: number;
+  cryptoBalance: string;
+  fiatBalance: number;
+}
 export class UserDto {
   _id: string;
   email: string;

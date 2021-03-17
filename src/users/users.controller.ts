@@ -16,7 +16,7 @@ import { DEFAULT_PAGE_SIZE } from 'app.constants';
 import { AuthRequest } from 'auth/dto/auth-request.dto';
 import { PhoneNumberDto } from 'auth/dto/create-account.dto';
 import { AuthGuard } from 'auth/guards/auth.guard';
-import { VerifyUserDto, CryptoTypesDto } from './dto';
+import { VerifyUserDto } from './dto';
 import {
   SavedPhoneNumberDto,
   AddPhoneNumberDto,
@@ -27,6 +27,7 @@ import {
   FindContactsDto,
   CryptoInfoDto,
   CryptoAssetIdDto,
+  CryptoFiatBalanceDto,
 } from './users.interfaces';
 import { UsersService } from './users.service';
 import TwilioService from 'services/twilio.service';
@@ -51,6 +52,20 @@ export class UsersController {
     const { user } = req;
 
     return this.usersService.getBalance(user.account);
+  }
+
+  @Get('current/crypto-fiat-balnce')
+  public getCryptoFiatBalance(
+    @Req() req: AuthRequest,
+    @Query('crypto') crypto: string,
+  ): Promise<CryptoFiatBalanceDto> {
+    const { user } = req;
+
+    return this.usersService.getCryptoFiatBalance({
+      accountReference: user.account,
+      username: user.username,
+      crypto: crypto.toLowerCase(),
+    });
   }
 
   @Get('current/crypto')
