@@ -68,6 +68,7 @@ export interface CryptoFiatBalanceDto {
   sellCrypto: number;
   cryptoBalance: string;
   fiatBalance: number;
+  duniapayFee: number;
 }
 export class UserDto {
   _id: string;

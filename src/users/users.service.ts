@@ -112,16 +112,13 @@ export class UsersService extends BaseService<UserDocument> {
       sellCrypto: sellPriceWithDuniapayFee,
       cryptoBalance,
       fiatBalance,
+      duniapayFee: Number(this.duniapayFeeExchange),
     };
   }
 
   private countDuniaPayPrice(price: number): number {
-    return (
-      Number(
-        Math.floor(
-          (price * (100 + Number(this.duniapayPercentExchange))) / 100,
-        ),
-      ) + Number(this.duniapayFeeExchange)
+    return Number(
+      Math.floor((price * (100 + Number(this.duniapayPercentExchange))) / 100),
     );
   }
 
