@@ -13,6 +13,11 @@ export class KYCInfo {
   identityAccessKey: string | null;
 }
 
+export class PushNotifications {
+  tokens: string[];
+  show: boolean;
+}
+
 export interface SavedPhoneNumberDto {
   _id?: string;
   phoneOperator: string;
@@ -82,6 +87,7 @@ export class UserDto {
   oauth: OAuthProvider;
   savedPhoneNumbers: Array<PhoneNumber>;
   verificationStatus: RehiveKYCStatus;
+  pushNotifications: PushNotifications;
 
   static fromUserDocument(userDocument: UserDocument): UserDto {
     const user = new UserDto();
@@ -97,6 +103,7 @@ export class UserDto {
     user.oauth = userDocument.oauth;
     user.savedPhoneNumbers = userDocument.savedPhoneNumbers;
     user.verificationStatus = userDocument.kyc.status;
+    user.pushNotifications = userDocument.pushNotifications;
     return user;
   }
 }
