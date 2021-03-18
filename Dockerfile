@@ -2,9 +2,9 @@ FROM node:12-alpine
 
 RUN apk update
 
-EXPOSE 8081
+EXPOSE 8080
 
-EXPOSE 8081
+EXPOSE 8080
 COPY ["./package.json", "./package-lock.json", ".eslintrc.js", "tsconfig.build.json", "tsconfig.json", "/app/"]
 WORKDIR /app
 
