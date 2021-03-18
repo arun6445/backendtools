@@ -5,7 +5,7 @@ RUN apk update
 EXPOSE 8080
 
 EXPOSE 8080
-COPY ["./package.json", "./package-lock.json", ".eslintrc.js", "tsconfig.build.json", "tsconfig.json", "/app/"]
+COPY ["./package.json", "./package-lock.json", "tsconfig.build.json", "tsconfig.json", "/app/"]
 WORKDIR /app
 
 RUN npm ci --quiet
