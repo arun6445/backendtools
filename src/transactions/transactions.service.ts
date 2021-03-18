@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { IntouchWebhookResponse } from 'common/intouch/dto';
 import InTouchService from 'common/intouch/intouch.service';
 import {
@@ -13,12 +13,17 @@ import {
   RehiveTransactionStatus,
 } from 'common/rehive/rehive.interfaces';
 import RehiveService from 'common/rehive/rehive.service';
+import FirebaseService from 'common/firebase/firebase.service';
+import { UsersService } from 'users/users.service';
 
 @Injectable()
 export class TransactionsService {
   constructor(
     private readonly rehiveService: RehiveService,
     private readonly intouchService: InTouchService,
+    private readonly firebaseService: FirebaseService,
+    @Inject(forwardRef(() => UsersService))
+    private usersService: UsersService,
   ) {}
 
   getUserTransactions(
@@ -145,6 +150,41 @@ export class TransactionsService {
     } catch (e) {
       await this.rehiveService.updateTransactionStatus(debit.id, 'Failed');
       throw e;
+    }
+  }
+
+  async sendTransferNotifications(
+    userId: string,
+    recipientId: string,
+    transferAmount: number,
+  ) {
+    const user = await this.usersService.findOneById(userId);
+    const recipient = await this.usersService.findOneById(recipientId);
+
+    const messageTo = {
+      notification: {
+        title: '',
+        body: `You have just sent ${transferAmount}₣ to ${recipient.username} from your wallet`,
+      },
+    };
+    if (user.pushNotifications.show) {
+      this.firebaseService.sendNotification(
+        user.pushNotifications.tokens,
+        messageTo,
+      );
+    }
+
+    const messageFrom = {
+      notification: {
+        title: '',
+        body: `You have just received ${transferAmount}₣ from ${user.username} to your wallet`,
+      },
+    };
+    if (recipient.pushNotifications.show) {
+      this.firebaseService.sendNotification(
+        recipient.pushNotifications.tokens,
+        messageFrom,
+      );
     }
   }
 }

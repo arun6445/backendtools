@@ -76,6 +76,13 @@ export class TransactionsController {
         user._id,
         transferData,
       );
+
+      this.transactionService.sendTransferNotifications(
+        user._id,
+        transferData.recipient,
+        transferData.amount,
+      );
+
       return transaction;
     } catch (e) {
       throw new HttpException(e.response.data.data, HttpStatus.BAD_REQUEST);

@@ -254,4 +254,38 @@ export class UsersController {
       );
     }
   }
+
+  @Post('/current/pushNotificationsToken')
+  public async setPushNotificationsToken(
+    @Req() req: AuthRequest,
+    @Body() { token },
+  ) {
+    const { user } = req;
+
+    const addedToken = await this.usersService.setPushNotificationsToken(
+      user._id,
+      token,
+    );
+
+    return {
+      token: addedToken,
+    };
+  }
+
+  @Post('/current/showPushNotifications')
+  public async setShowPushNotifications(
+    @Req() req: AuthRequest,
+    @Body() { show },
+  ) {
+    const { user } = req;
+
+    const showNotifications = await this.usersService.setShowPushNotifications(
+      user._id,
+      show,
+    );
+
+    return {
+      show: showNotifications,
+    };
+  }
 }

@@ -75,6 +75,10 @@ export class AuthService {
               ? objectIdentificator.id
               : null,
         },
+        pushNotifications: {
+          tokens: [],
+          show: true,
+        },
       });
     } catch (e) {
       throw new HttpException(
@@ -304,6 +308,10 @@ export class AuthService {
         oauth: {
           facebook: '',
           google: '',
+        },
+        pushNotifications: {
+          tokens: [],
+          show: true,
         },
       });
 

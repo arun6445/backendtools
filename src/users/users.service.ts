@@ -1,4 +1,10 @@
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import {
+  Injectable,
+  HttpException,
+  HttpStatus,
+  forwardRef,
+  Inject,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { FilterQuery, Model, Types } from 'mongoose';
 import { ConfigService } from '@nestjs/config';
@@ -45,6 +51,7 @@ export class UsersService extends BaseService<UserDocument> {
     private readonly rehiveService: RehiveService,
     private readonly fireblocksService: FireblocksService,
     private readonly coinbaseService: Coinbase,
+    @Inject(forwardRef(() => TransactionsService))
     private transactionsService: TransactionsService,
     private readonly configService: ConfigService,
   ) {
@@ -522,5 +529,38 @@ export class UsersService extends BaseService<UserDocument> {
         );
         return phoneNumberIndex === -1;
       });
+  }
+
+  public async setPushNotificationsToken(userId: string, token: string) {
+    const isTokenExists = await this.exists({
+      'pushNotifications.tokens': token,
+    });
+
+    if (isTokenExists) {
+      throw new HttpException(
+        {
+          token: 'This firebase token has been already added',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const { pushNotifications } = await this.findOneAndUpdate(
+      { _id: userId },
+      { $push: { 'pushNotifications.tokens': token } },
+      { new: true },
+    );
+
+    return pushNotifications.tokens[pushNotifications.tokens.length - 1];
+  }
+
+  public async setShowPushNotifications(userId: string, show: boolean) {
+    const { pushNotifications } = await this.findOneAndUpdate(
+      { _id: userId },
+      { 'pushNotifications.show': show },
+      { new: true },
+    );
+
+    return pushNotifications.show;
   }
 }

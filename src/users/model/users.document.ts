@@ -1,7 +1,7 @@
 import { Prop, Schema } from '@nestjs/mongoose';
 
 import BaseDocument from 'common/base/base.document';
-import { KYCInfo, OAuthProvider } from '../users.interfaces';
+import { KYCInfo, OAuthProvider, PushNotifications } from '../users.interfaces';
 import { Document } from 'mongoose';
 
 @Schema()
@@ -85,4 +85,7 @@ export class User extends BaseDocument {
 
   @Prop()
   savedDebitCards: Array<DebitCard>;
+
+  @Prop()
+  pushNotifications: PushNotifications;
 }
