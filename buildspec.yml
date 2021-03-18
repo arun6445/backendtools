@@ -33,7 +33,6 @@ artifacts:
     - src/**/*
     - package.json
     - tsconfig.json
-    - Dockerrun.aws.json
     - Dockerfile
     - node_modules/**/*
     - imagedefinitions.json
