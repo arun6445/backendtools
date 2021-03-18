@@ -54,7 +54,7 @@ export class UsersController {
     return this.usersService.getBalance(user.account);
   }
 
-  @Get('current/crypto-fiat-balnce')
+  @Get('current/crypto-fiat-balance')
   public getCryptoFiatBalance(
     @Req() req: AuthRequest,
     @Query('crypto') crypto: string,
