@@ -40,14 +40,14 @@ services:
     networks:
       - dunia
     environment:
-      APP_ENV: development
+      APP_ENV: production
     volumes:
       - ./src:/app/src
     ports:
       - 8080:8080
       - 8082:8082
     env_file:
-      - ./development.env
+      - ./production.env
     depends_on:
       #   - redis
       - mongo-replicator
