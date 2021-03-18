@@ -1,8 +1,8 @@
 export default {
   OAUTH_PROVIDER: {
     GOOGLE: 'google',
-    FACEBOOK: 'facebook',
-  },
-};
+    FACEBOOK: 'facebook'
+  }
+}
 
-export const DEFAULT_PAGE_SIZE = 15;
+export const DEFAULT_PAGE_SIZE = 15

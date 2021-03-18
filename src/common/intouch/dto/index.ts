@@ -1,1 +1,1 @@
-export * from './intouch-webhook.dto';
+export * from './intouch-webhook.dto'

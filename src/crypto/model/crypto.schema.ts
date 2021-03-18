@@ -1,5 +1,5 @@
-import { SchemaFactory } from '@nestjs/mongoose';
+import { SchemaFactory } from '@nestjs/mongoose'
 
-import { Crypto } from './crypto.document';
+import { Crypto } from './crypto.document'
 
-export const CryptoSchema = SchemaFactory.createForClass(Crypto);
+export const CryptoSchema = SchemaFactory.createForClass(Crypto)

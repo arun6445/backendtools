@@ -1,2 +1,2 @@
-export { Crypto as CryptoDocument } from './crypto.document';
-export { CryptoSchema } from './crypto.schema';
+export { Crypto as CryptoDocument } from './crypto.document'
+export { CryptoSchema } from './crypto.schema'
