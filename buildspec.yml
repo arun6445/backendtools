@@ -28,8 +28,12 @@ phases:
       - printf '[{"name":"%s"}]' $CONTAINER_NAME $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG > imagedefinitions.json
 # Include only the files required for your application to run.
 artifacts:
+  type: zip
   files:
     - src/**/*
     - package.json
+    - tsconfig.json
+    - Dockerrun.aws.json
+    - Dockerfile
     - node_modules/**/*
     - imagedefinitions.json
